@@ -3,15 +3,16 @@ project (checkers)
 
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/../googletest
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
+#add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/../googletest
+#                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+#                 EXCLUDE_FROM_ALL)
+add_subdirectory("googletest")
 
 # The gtest/gtest_main targets carry header search path
 # dependencies automatically when using CMake 2.8.11 or
 # later. Otherwise we have to add them here ourselves.
 if (CMAKE_VERSION VERSION_LESS 2.8.11)
-  include_directories("${gtest_SOURCE_DIR}/include")
+  include_directories("googletest/googletest/include")
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg

@@ -4,11 +4,12 @@
 #include <string>
 #include <assert.h>
 
+
 void printLine(int ind, const Board & b)
 {
 	std::cout << "\u2503";
 
-	if(!(ind % 2)) 
+	if((ind % 2)) 
 	{
 		std::cout << "   ";
 		std::cout << "\u2503";
@@ -16,10 +17,18 @@ void printLine(int ind, const Board & b)
 
 	for(int i = 0; i < 4; ++i)
 	{
-		switch(b.get(ind*4+i))
+		switch(b.whoIsThere(ind*8 + i*2 + ind%2))
 		{
 			case Empty:
 				std::cout << "   ";
+				std::cout << "\u2503";
+				break;
+			case WhiteKing:
+				std::cout << " @ ";
+				std::cout << "\u2503";
+				break;
+			case BlackKing:
+				std::cout << " H ";
 				std::cout << "\u2503";
 				break;
 			case White:
@@ -31,12 +40,13 @@ void printLine(int ind, const Board & b)
 				std::cout << "\u2503";
 				break;
 		}
+		
 		if(i < 3) {
 			std::cout << "   ";
 			std::cout << "\u2503";
 		}
 	}
-	if((ind % 2)) 
+	if(!(ind % 2)) 
 	{
 		std::cout << "   ";
 		std::cout << "\u2503";
@@ -47,7 +57,7 @@ void printLine(int ind, const Board & b)
 
 void printBoard(const Board & b)
 {
-	std::cout << std::endl;
+	std::cout << std::endl << "\033[90m";
 
 	std::cout << "  \u250F";
 	for(int i = 0; i < 15; ++i)
@@ -59,7 +69,7 @@ void printBoard(const Board & b)
 
 	for(int i = 8; i > 0; --i)
 	{
-		std::cout << (char)('h'- i + 1) << " ";
+		std::cout << (char)('a'+ i - 1) << " ";
 		printLine(i-1, b);	
 		std::cout << "  ";
 		std::cout << "\u2523";
@@ -89,6 +99,9 @@ void printBoard(const Board & b)
 	}
 	std::cout << std::endl;
 }
+
+
+
 int main()
 {
 	std::string in;
@@ -99,8 +112,5 @@ int main()
 
 	std::cout << "Your turn: ";
 
-	while( getline(std::cin, in) ) {
-		std::cout << "you enter:" << in << std::endl;
-	}
 	return 0;
 }

@@ -1,252 +1,406 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-//#include "checkers.h"
+#include "checkers.h"
 
-#include "checkersAI.cpp"
+//#include "checkersAI.cpp"
+
 /*
-void printBoard()
+  ┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓
+h ┃   ┃ 57┃   ┃ 59┃   ┃ 61┃   ┃ 63┃
+  ┣━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┫
+g ┃ 48┃   ┃ 50┃   ┃ 52┃   ┃ 54┃   ┃
+  ┣━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┫
+f ┃   ┃ 41┃   ┃ 43┃   ┃ 45┃   ┃ 47┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+e ┃ 32┃   ┃ 34┃   ┃ 36┃   ┃ 38┃   ┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+d ┃   ┃ 25┃   ┃ 27┃   ┃ 29┃   ┃ 31┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+c ┃ 16┃   ┃ 18┃   ┃ 20┃   ┃ 22┃   ┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+b ┃   ┃ 9 ┃   ┃ 11┃   ┃ 13┃   ┃ 15┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
+  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
+    1   2   3   4   5   6   7   8 
+
+ */
+
+TEST(testFindNoTakesEmptyBoard, aiTest)
 {
-	for(int i = 0; i < 12; ++i)
-	{
-		std::cout << piecesA[i] << " ";
-	}
-	std::cout << std::endl;
-	for(int i = 0; i < 12; ++i)
-	{
-		std::cout << piecesB[i] << " ";
-	}
-	std::cout << std::endl;
-	for(int i = 0; i < 12; ++i)
-	{
-		std::cout << kingsA[i] << " ";
-	}
-	std::cout << std::endl;
-	for(int i = 0; i < 12; ++i)
-	{
-		std::cout << kingsB[i] << " ";
-	}
-	std::cout << std::endl << std::endl;
+	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move m;
+	ai.findTakes(b, 11, true, m);
+	EXPECT_EQ(m, Move());
 }
 
-TEST(first_test_case, AI_test)
+TEST(testFindOneTakes, aiTest)
 {
-	printBoard();
-	StartSelect();
-	printBoard();
+	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move m;
+	ai.findTakes(b, 11, true, m);
+	m.toString();
+	EXPECT_EQ(m, Move(Step(29, true)));
 }
-*/
+
+TEST(testFindTwoTakes, aiTest)
+{
+	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {20, 0, 18, 0, 36, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move m;
+	ai.findTakes(b, 11, true, m);
+	m.toString();
+	Move tm(Step(29, true));
+	tm.addStep(Step(43, true));
+	EXPECT_EQ(m, tm);
+}
+
+TEST(testOffsetForPeise, aiTest)
+{
+	CheckersAI ai;
+	EXPECT_EQ(ai.offset(CheckersAI::Right, true), 9);
+	EXPECT_EQ(ai.offset(CheckersAI::Left, true), 7);
+	EXPECT_EQ(ai.offset(CheckersAI::RightBack, true), -7);
+	EXPECT_EQ(ai.offset(CheckersAI::LeftBack, true), -9);
+
+	EXPECT_EQ(ai.offset(CheckersAI::Right, false), -9);
+	EXPECT_EQ(ai.offset(CheckersAI::Left, false), -7);
+	EXPECT_EQ(ai.offset(CheckersAI::RightBack, false), 7);
+	EXPECT_EQ(ai.offset(CheckersAI::LeftBack, false), 9);
+}
+
+TEST(testAIDetectBoardBorders, aiTest)
+{
+	CheckersAI ai;
+	EXPECT_FALSE(ai.canGoLeft(0, true));
+	EXPECT_TRUE(ai.canGoRight(0, true));
+	
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 0, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Left, 0, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 0, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::LeftBack, 0, true));
+	
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 2, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 2, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 2, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::LeftBack, 2, true));
+	
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 11, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 11, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::RightBack, 11, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 11, true));
+	
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 15, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 15, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 15, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 15, true));
+	
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 59, true));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Left, 59, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::RightBack, 59, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 59, true));
+	
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 32, false));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 32, false));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 32, false));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 32, false));
+
+	EXPECT_FALSE(ai.onKingSide(0, true));
+	EXPECT_TRUE(ai.onKingSide(0, false));
+	
+	EXPECT_TRUE(ai.canGoLeft(2, true));
+	EXPECT_TRUE(ai.canGoRight(2, true));
+	
+	EXPECT_TRUE(ai.canGoLeft(15, true));
+	EXPECT_FALSE(ai.canGoRight(15, true));
+	
+	EXPECT_FALSE(ai.canGoLeft(15, false));
+	EXPECT_TRUE(ai.canGoRight(15, false));
+
+	EXPECT_TRUE(ai.onKingSide(57, true));
+	EXPECT_FALSE(ai.onKingSide(57, false));
+}
+
+TEST(testInitBoardColors, boardTest)
+{
+	Board b;
+	EXPECT_EQ(b.whoIsThere(0),  White);
+	EXPECT_EQ(b.whoIsThere(1),  Empty);
+	EXPECT_EQ(b.whoIsThere(2),  White);
+	EXPECT_EQ(b.whoIsThere(32), Empty);
+	EXPECT_EQ(b.whoIsThere(41), Black);
+	EXPECT_EQ(b.whoIsThere(63), Black);
+}
+
+TEST(testFindBaseMovesForPieceWithoutTake, aiTest)
+{
+	Board b;
+	CheckersAI ai;
+	Move m[4];
+
+	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 2);
+	EXPECT_EQ(m[0], Move(Step(25, false)));
+	EXPECT_EQ(m[1], Move(Step(27, false)));
+
+	EXPECT_EQ(ai.findMoves(b, 16, true,  m), 1);
+	EXPECT_EQ(m[0], Move(Step(25, false)));
+
+	EXPECT_EQ(ai.findMoves(b, 9,  true,  m), 0);
+
+	EXPECT_EQ(ai.findMoves(b, 43, false, m), 2);
+	EXPECT_EQ(m[0], Move(Step(34, false)));
+	EXPECT_EQ(m[1], Move(Step(36, false)));
+
+	EXPECT_EQ(ai.findMoves(b, 47, false, m), 1);
+	EXPECT_EQ(m[0], Move(Step(38, false)));
+
+	EXPECT_EQ(ai.findMoves(b, 54, false, m), 0);
+}
+
+TEST(testFindBaseMovesForPieceWithTake, aiTest)
+{
+	int pA[12] = {0, 18, 25, 9, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {0, 27, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	CheckersAI ai;
+	Move m[4];
+
+	// шашка заблокирована с одной диагонали и должна рубить 1раз по другой
+	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 1);
+	EXPECT_EQ(m[0], Move(Step(36, true)));
+	
+	// шашка заблокирована с одной диагонали и не рубит за пределы доски влево
+	EXPECT_EQ(ai.findMoves(b, 9, true,  m), 0);
+}
+
+TEST(testFindMovesPieceCantTakeOutsideBoard, aiTest)
+{
+	int pA[12] = {0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	CheckersAI ai;
+	Move m[4];
+
+	// шашка не рубит за пределы доски
+	EXPECT_EQ(ai.findMoves(b, 22, true,  m), 1);
+	EXPECT_EQ(m[0], Move(Step(29, false)));
+}
+
+TEST(testFindMovesPieceMustTakeMultiply, aiTest)
+{
+	int pA[12] = {0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {0, 27, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	CheckersAI ai;
+	Move m[4];
+
+	// шашка должна срубить дважды
+	//EXPECT_EQ(ai.findMoves(b, 18, true,  m), 1);
+	//m[0].toString();
+	//m[1].toString();
+	//Move em(Step(36,true));
+	//em.addStep(Step(54, true));
+	//EXPECT_EQ(m[0], em);
+}
+
+
 /*
+ * Check initialized board moves
+ */
 
-TEST(stepValid_test_case, step_test)
-{
-	Step s;
-	EXPECT_FALSE(s.isValid());
-	Step s1(1,1);
-	EXPECT_FALSE(s1.isValid());
-	Step s2(1,2);
-	EXPECT_TRUE(s2.isValid());
-}
+struct SimpleMovementsTestData {
+	int i;
+	int who;
+	int count;
+	int m[4];
+};
 
-TEST(moveInitWithSteps_test_case, move_test)
+static std::array<SimpleMovementsTestData, 10> tdata
+{{
+	{	8, -1, 1, {25, 0, 0, 0} },
+	{	9, -1, 2, {25, 27, 0, 0} },
+	{	10, -1, 2,{27, 29, 0, 0} },
+	{	11, -1, 2,{29, 31, 0, 0} },
+	{	11, -1, 2,{29, 31, 0, 0} },
+	{ 0, 1, 0,  {0, 0, 0, 0} },
+	{	9, 1, 2,  {36, 38, 0, 0} },
+	{	10, 1, 2, {34, 36, 0, 0} },
+	{	11, 1, 2, {32, 34, 0, 0} },
+	{	0, 1, 0,  {0, 0, 0, 0} }
+}};
+
+class FindMovesTestCase
+	: public ::testing::TestWithParam<SimpleMovementsTestData>
 {
-	Move move(Step(1,2));
-	move.addStep(Step(2,3));
-	move.addStep(Step(3,4));
-	move.addStep(Step(4,5));
-	move.addStep(Step(5,6));
-	for(int i = 0; i < 5; i++)
-	{
-		ASSERT_TRUE(move.getStep(i).isValid());
+};
+
+bool compareMoves(Move * a, Move * b, int size)
+{
+	std::vector<Move> va;
+	std::vector<Move> vb;
+	for(int i = 0; i < size; ++i) {
+	//	if(a[i].isValid()) {
+			va.push_back(a[i]);
+	//	}
+	//	if(b[i].isValid()) {
+			vb.push_back(b[i]);
+	//	}
 	}
-	ASSERT_FALSE(move.getStep(6).isValid());
-	ASSERT_EQ(move.getStep(0).from, 1);
-	ASSERT_EQ(move.getStep(0).to, 2);
-	ASSERT_EQ(move.getStep(3).from, 4);
-	ASSERT_EQ(move.getStep(3).to, 5);
-}
 
-::testing::AssertionResult checkBoardInitState(const Board & b)
-{
-	if(b.get(0) != White) return ::testing::AssertionFailure();
-	if(b.get(1) != White) return ::testing::AssertionFailure();
-	if(b.get(2) != White) return ::testing::AssertionFailure();
-	if(b.get(3) != White) return ::testing::AssertionFailure();
-	if(b.get(4) != White) return ::testing::AssertionFailure();
-	if(b.get(5) != White) return ::testing::AssertionFailure();
-	if(b.get(6) != White) return ::testing::AssertionFailure();
-	if(b.get(7) != White) return ::testing::AssertionFailure();
-	if(b.get(8) != White) return ::testing::AssertionFailure();
-	if(b.get(9) != White) return ::testing::AssertionFailure();
-	if(b.get(10) != White) return ::testing::AssertionFailure(); 
-	if(b.get(11) != White) return ::testing::AssertionFailure();
-	
-	if(b.get(12) != Empty) return ::testing::AssertionFailure();
-	if(b.get(13) != Empty) return ::testing::AssertionFailure();
-	if(b.get(14) != Empty) return ::testing::AssertionFailure();
-	if(b.get(15) != Empty) return ::testing::AssertionFailure();
-	if(b.get(16) != Empty) return ::testing::AssertionFailure();
-	if(b.get(17) != Empty) return ::testing::AssertionFailure();
-	if(b.get(18) != Empty) return ::testing::AssertionFailure();
-	if(b.get(19) != Empty) return ::testing::AssertionFailure();
+	sort(va.begin(), va.end());
+	sort(vb.begin(), vb.end());
 
-	if(b.get(20) != Black) return ::testing::AssertionFailure();
-	if(b.get(21) != Black) return ::testing::AssertionFailure();
-	if(b.get(22) != Black) return ::testing::AssertionFailure();
-	if(b.get(23) != Black) return ::testing::AssertionFailure();
-	if(b.get(24) != Black) return ::testing::AssertionFailure();
-	if(b.get(25) != Black) return ::testing::AssertionFailure();
-	if(b.get(26) != Black) return ::testing::AssertionFailure();
-	if(b.get(27) != Black) return ::testing::AssertionFailure();
-	if(b.get(28) != Black) return ::testing::AssertionFailure();
-	if(b.get(29) != Black) return ::testing::AssertionFailure();
-	if(b.get(30) != Black) return ::testing::AssertionFailure();
-	if(b.get(31) != Black) return ::testing::AssertionFailure();
-
-	return ::testing::AssertionSuccess();
-}
-
-TEST(boardInitWithData_test_case, board_test)
-{
-	Field f [Board::size()];
-	for(int i = 0; i < Board::size(); ++i)
+	if(va.size() != vb.size())
 	{
-		f[i] = i%2 ? White : Black;
+		return false;
 	}
 	
-	Board b(f);
-
-	for(int i = 0; i < Board::size(); ++i)
+	for(int i = 0; i < va.size(); ++i)
 	{
-		ASSERT_EQ(b.get(i), i%2 ? White : Black);
+		if(!(va[i] == vb[i]))
+		{
+			return false;
+		}
 	}
+	return true;
 }
 
-TEST(boardInit_test_case, board_test)
+/*
+TEST_P(FindMovesTestCase, TestInitBoardMove)
 {
-	Board b;
-	EXPECT_TRUE(checkBoardInitState(b));
-}
+	int pA[] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
+	int pB[] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
+	int kA[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int m[4] = {0};
 
-TEST(boardReset_test_case, board_test)
-{
-	Board b;
-
-	Step step(8,12);
-	Move move(step);
-	b.doMove(move);
-	b.remove(1);
-	b.remove(31);
-	b.remove(18);
-	b.remove(6);
-
-	ASSERT_EQ(b.get(8), Empty);
-	ASSERT_EQ(b.get(12), White);
-
-	b.reset();
-	EXPECT_TRUE(checkBoardInitState(b));
-}
-
-TEST(boardRemove_test_case, board_test)
-{
-	Board b;
-	b.remove(1);
-	ASSERT_EQ(b.get(1), Empty);
-	b.remove(8);
-	ASSERT_EQ(b.get(8), Empty);
-	b.remove(31);
-	ASSERT_EQ(b.get(31), Empty);
-	b.remove(18);
-	ASSERT_EQ(b.get(18), Empty);
-}
-
-TEST(boardOneStepMove_test_case, board_test)
-{
-	Board b;
-
-	Step step(8,12);
-	Move move(step);
-	b.doMove(move);
-	ASSERT_EQ(b.get(8), Empty);
-	ASSERT_EQ(b.get(12), White);
-}
-
-TEST(boardMultiplyStepMove_test_case, board_test)
-{
-	Board b;
-
-	Move move(Step(8,12));
-	Step step1(12,17);
-	Step step2(17,13);
-	move.addStep(step1);
-	move.addStep(step2);
-	b.doMove(move);
-	ASSERT_EQ(b.get(8), Empty);
-	ASSERT_EQ(b.get(12), Empty);
-	ASSERT_EQ(b.get(17), Empty);
-	ASSERT_EQ(b.get(13), White);
-}
-
-TEST(checkFalseToMoveEmpty_test_case, checkersAi_test)
-{
-	Board b;
-	Move move (Step(12,13));
+	SimpleMovementsTestData d = GetParam();
 	
-	CheckersAI ai;
-	
-	EXPECT_FALSE(ai.checkMove(b, move));
+	EXPECT_EQ(options(d.i, m, pA, pB, kA, kB, d.who), d.count);
+
+	EXPECT_EQ(compareMoves(d.m, m, 4), true);
 }
 
-TEST(checkFindAvailableFields, checkersAi_test)
-{
-	Field f [Board::size()] = {Empty};
-	f[14] = White;
-	Board b(f);
-
-	CheckersAI ai;
-	int cnt = ai.findAvailableFields(b, 14);	
-	ASSERT_EQ(cnt, 2);
-	const int * available = ai.getAvailable();
-	ASSERT_EQ(available[0], 18);
-	ASSERT_EQ(available[1], 19);
-}
-
-TEST(DISABLED_checkSingleMoveEmptyFields_test_case, checkersAi_test)
-{
-	Field f [Board::size()] = {Empty};
-	f[13] = White;
-	Board b(f);
-
-	CheckersAI ai;
-
-	Move move0(Step(13,9));
-	Move move1(Step(13,10));
-	Move move2(Step(12,14));
-	Move move3(Step(13,17));
-
-	Move move4(Step(13,21));
-	Move move5(Step(13,15));
-	Move move6(Step(13,4));
-	Move move7(Step(13,5));
-	Move move8(Step(13,6));
-	
-	Move move9(Step(13,17));
-	Move move10(Step(13,18));
-
-	EXPECT_FALSE(ai.checkMove(b, move0));
-	EXPECT_FALSE(ai.checkMove(b, move1));
-	EXPECT_FALSE(ai.checkMove(b, move2));
-	EXPECT_FALSE(ai.checkMove(b, move3));
-
-	EXPECT_FALSE(ai.checkMove(b, move4));
-	EXPECT_FALSE(ai.checkMove(b, move5));
-	EXPECT_FALSE(ai.checkMove(b, move6));
-	EXPECT_FALSE(ai.checkMove(b, move7));
-	EXPECT_FALSE(ai.checkMove(b, move8));
-
-	EXPECT_TRUE(ai.checkMove(b, move9));
-	EXPECT_TRUE(ai.checkMove(b, move10));
-}
+INSTANTIATE_TEST_CASE_P(FindMovesTestCaseSet, 
+		FindMovesTestCase, 
+		testing::ValuesIn(tdata));
 
 */
 
+
+
+/*
+struct MovementsWithBoardTestData {
+	int pA[12];
+	int pB[12];
+	int kA[12];
+	int kB[12];
+	int i;
+	int who;
+	int count;
+	int m[4];
+};
+
+static std::array<MovementsWithBoardTestData, 7> bdata
+{{
+	{	// ход из угла, только один вариант
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 1, {9, 0, 0, 0} 
+	},
+	{	// запертая шашака, некуда ходить
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{9, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 0, {0, 0, 0, 0} 
+	},
+	{	// запертая шашака, только один ход
+		{2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{11, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 1, {9, 0, 0, 0} 
+	},
+	{	// белая дамка по среди поля !!! ХЗ должна ходить дальше !!!
+		{18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 4, {9, 11, 25, 27} 
+	},
+	{	// белая шашка которая должна срубить вперед !!! НЕВЕРНО, должна только рубить!!!
+		{18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 2, {25, 36, 0, 0} 
+	},
+	{	// белая шашка которая должна срубить назад !!! НЕВЕРНО, должна только рубить назад!!!
+		{18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 2, {25, 27, 0, 0} 
+	},
+	{	// белая шашка которая должна срубить два раза !!! НЕВЕРНО, должна только рубить дважды !!!
+		{18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{27, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		0, -1, 2, {25, 36, 0, 0} 
+	}
+ }};
+
+class FindMovesWithBoardTestCase
+	: public ::testing::TestWithParam<MovementsWithBoardTestData>
+{
+};
+
+TEST_P(FindMovesWithBoardTestCase, TestBoardMove)
+{
+	int m[4] = {0};
+	MovementsWithBoardTestData d = GetParam();
+	EXPECT_EQ(options(d.i, m, d.pA, d.pB, d.kA, d.kB, d.who), d.count);
+	EXPECT_EQ(compareMoves(d.m, m, 4), true);
+}
+
+INSTANTIATE_TEST_CASE_P(FindMovesTestCaseSet, 
+		FindMovesWithBoardTestCase, 
+		testing::ValuesIn(bdata));
+*/

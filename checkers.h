@@ -1,7 +1,11 @@
 #pragma once
 
+//TODO: for desktop only!!
+#include <vector>
+#include <algorithm>
 
-enum Field{
+
+enum Fld {
 	Empty,
 	White,
 	Black,
@@ -12,25 +16,55 @@ enum Field{
 class Step {
 public:
 	Step(){};
-	Step(int f, int t)
-		: from(f)
-		, to(t)
+	Step(int t, bool tk = false)
+		: to(t)
+		, take(tk)
 	{}
 public:
 	inline bool isValid() const
 	{
-		return (from != -1) && (to != -1) && (from!= to);
+		return (to != -1);
 	}
-	int from = -1;
+
+  bool operator < (const Step & s) const
+  {
+		return (to < s.to);
+  }
+
+	bool operator== (const Step & s) const
+	{
+		return (to == s.to) && (take == s.take);
+	}
+
+public:
 	int to = -1;
+	int take = 0;
 };
 
+
 class Move {
+
 public:
+	//Move() = delete;
+	Move() = default;
 	Move(Step step) {
 		steps_[0] = step;
+		hasTakes_ = step.take;
 		stepCount_ = 1;
+		count_++;
 	}
+	~Move() { count_--; }
+
+	void toString()
+	{
+		std::cout << "******* Move [count][takes] " << stepCount_ << "| " << hasTakes_ << ": ";
+		for(int i = 0; i < stepCount_; ++i)
+		{
+			std::cout << steps_[i].to << ",";
+		}
+		std::cout << std::endl;
+	}
+
 	bool addStep(Step step)
 	{
 		if(stepCount_ == maxSteps_)
@@ -38,9 +72,15 @@ public:
 			return false;
 		}
 		steps_[stepCount_] = step;
+		hasTakes_ |= (step.take);
 		stepCount_++;
 		return true;
 	}
+
+	int size() const {
+		return stepCount_;
+	}
+	
 	const Step getStep(int ind) const
 	{
 		if(ind >= maxSteps_)
@@ -49,142 +89,265 @@ public:
 		}
 		return steps_[ind];
 	}
+
+	bool hasTakes() const { return hasTakes_; }
+
+	bool operator== (const Move & m) const
+	{	
+		std::vector<Step> va;
+		std::vector<Step> vb;
+
+		if(m.size() != size()) return false;
+
+		for(int i = 0; i < stepCount_; ++i) {
+				va.push_back(steps_[i]);
+			if(m.getStep(i).isValid()) {
+				vb.push_back(m.getStep(i));
+			}
+		}
+
+		std::sort(va.begin(), va.end());
+		std::sort(vb.begin(), vb.end());
+
+		if(va.size() != vb.size())
+		{
+			return false;
+		}
+		
+		for(int i = 0; i < va.size(); ++i)
+		{
+			if(!(va[i] == vb[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool operator<(const Move & move)
+	{
+		int mySum = 0;
+		int otherSum = 0;
+		for(int i = 0; i < size(); ++i)
+		{
+			mySum += getStep(i).to;
+		}
+		for(int i = 0; i < move.size(); ++i)
+		{
+			otherSum += move.getStep(i).to;
+		}
+		return mySum < otherSum;
+	}
+
+	static int count_;
 private:
-	static constexpr int maxSteps_ = 6;
+	// max number of take
+	static constexpr int maxSteps_ = 3;
 	int stepCount_ = 0;
 	Step steps_[maxSteps_];
+	bool hasTakes_ = false;
 };
+
+int Move::count_ = 0;
+
+#include <cstring>
 
 // all checkers set on black
 // 1A is black
+// the whites start from 1a
 class Board {
 
 public:	
+	static constexpr int rowSize_ = 12;
 
-	Board()
+	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
+	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
+	int kA[rowSize_] = {0};
+	int kB[rowSize_] = {0};
+
+	void initWithData (int * pa, int * pb, int * ka, int * kb)
 	{
-		reset();
+		memcpy(pA, pa, sizeof(pA));
+		memcpy(pB, pb, sizeof(pB));
+		memcpy(kA, ka, sizeof(kA));
+		memcpy(kB, kb, sizeof(kB));
 	}
-
-	Board(Field * f)
-	{
-		for(int i = 0; i < size_; ++i)
-		{
-			fields[i] = f[i];
-		}
-	}
-
-	void reset() {
-		for(int i = 0; i < 12; ++i)
-		{
-			fields[i] = White;
-  		fields[size_-i-1] = Black;
-		}
-		for(int i = 12; i < 20; ++i)
-		{
-			fields[i] = Empty;
-		}
-	}
-
-	static int size() { return size_; }
 	
-	Field get(int i) const { return fields[i]; }
-
-	void doMove(const Move & move)
+	Fld whoIsThere(int ind) const
 	{
-		int ind = 0;
-		while(move.getStep(ind).isValid())
-		{
-			Step step = move.getStep(ind);
-			fields[step.to] = fields[step.from];
-			fields[step.from] = Empty;
-			ind++;
+		for(int i = 0; i < 12; ++i) {
+			if(pA[i] == ind) {
+				if(kA[i] == 1)
+					return WhiteKing;
+				else
+					return White;
+			}
 		}
-	}
-	void remove(int i)
-	{
-		if(i < size_)
-		{
-			fields[i] = Empty;	
+		for(int i = 0; i < 12; ++i) {
+			if(pB[i] == ind) {
+				if(kB[i] == 1)
+					return BlackKing;
+				else
+					return Black;
+			}
 		}
+		return Empty;
 	}
 
 private:
-	static constexpr int size_ = 32;
-	Field fields[size_] = {Empty};
 };
 
 class CheckersAI {
 
-public:	
-	bool checkMove(const Board & b, const Move & m) 
+public:
+
+	enum Direction {
+		Right = 0,
+		Left = 1,
+		RightBack = 2,
+		LeftBack = 3,
+	};
+
+
+	int offset(int d, bool white)
 	{
-		int i = 0;
-		while(m.getStep(i).isValid())
+		switch(d)
 		{
-			Step s = m.getStep(i);
-			if(findAvailableFields(b, s.from) && destReachable(s.to))
+			case Right:
+				return white ? 9 : -9;
+			case Left:
+				return white ? 7 : -7;
+			case RightBack:
+				return white ? -7 : 7;
+			case LeftBack:
+				return white ? -9 : 9;
+		}
+	}
+
+	// все охуительно, только оно все варианты срубов пихает в один ход
+	void findTakes(const Board & b, int ind, bool white, Move & m, int from = -1)
+	{
+		for(int i = 0; i < 4; ++i)
+		{
+			if(canGoDirection(i, ind, white) && (i != from))
 			{
-				// ok
-				return true;
+				int offs = offset(i, white);
+				if((b.whoIsThere(ind + offs) == (white ? Black : White)) && canGoDirection(i, ind + offs, white))
+				{
+					int newInd = ind+offs + offset(i, white);
+					if((b.whoIsThere(newInd) == Empty))
+					{
+						// we can take
+						if(m.addStep(Step(newInd, true)))
+						{
+							int newFrom = -1;
+							if(i == Right)
+								newFrom = LeftBack;
+							if(i == Left)
+								newFrom = RightBack;
+							if(i == RightBack)
+								newFrom = Left;
+							if(i == LeftBack)
+								newFrom = Right;
+							findTakes(b, newInd, white, m, newFrom);
+						}
+					}
+				}
 			}
-			else
+		}
+	}
+
+	int findMoves(const Board & b, int ind, bool white, Move * m, bool takesOnly = false)
+	{
+		int count = 0;
+
+		if(ind%16 != 0) // not left side
+		{
+			// just move
+			if(!takesOnly && (b.whoIsThere(white ? ind+7 : ind-9) == Empty))
 			{
-				return false;
-				//sorry, did you do wrong move?
+				m[count++] = Move(Step(white ? ind+7 : ind-9));
+			} // can we take?
+			else if(b.whoIsThere(white ? ind+7 : ind-9) == (white ? Black : White))
+			{
+				//TODO: if we can take, do recursive(b, ind, white, currentMove, takeOnly = true)
+				//
+				//
+				// check we're not jumping over side and it's empty
+				if(((white ? ind+7 : ind-9)%16 != 0) 
+						&& (b.whoIsThere(white ? ind+7+7 : ind-9-9) == Empty))
+				{
+					m[count++] = Move(Step(white ? ind+7+7 : ind-9-9, true));
+					takesOnly = true;
+				}
 			}
-			i++;
 		}
-		return false;
+		if((ind+1)%16 != 0) // not right side
+		{
+			if(!takesOnly && (b.whoIsThere(white ? ind+9 : ind-7) == Empty))
+			{
+				m[count++] = Move(Step(white ? ind+9 : ind-7));
+			}
+			else if(b.whoIsThere(white ? ind+9 : ind-7) == (white ? Black : White))
+			{
+				// check we're not jumping over side and it's empty
+				if((((white ? ind+9 : ind-7)+1)%16 != 0) 
+						&& (b.whoIsThere(white ? ind+9+9 : ind-7-7) == Empty))
+				{
+					m[count++] = Move(Step(white ? ind+9+9 : ind-7-7, true));
+					takesOnly = true;
+				}
+			}
+		}
+
+		int newCount = count;
+		if(takesOnly) 
+		{
+			// get rid of notHasTake moves
+			for(int j = 0; j < count; ++j)
+			{
+				if(!m[j].hasTakes())
+				{
+					m[j].toString();
+					newCount--;
+					for(int i = j; i < count; ++i)
+					{
+							m[i] = m[i+1];
+					}
+				}
+			}
+		}
+		return newCount;
 	}
 
-	int findAvailableFields(const Board & b, int ind)
+	int canPieceTake(const Board & b, int direction, int ind, bool white)
 	{
-		for(int i = 0; i < maxAvailableFields; ++i)
-		{
-			availableFields[i] = -1;
-		}
-		if(onLeftSide(ind))
-		{
-		}
-		else if(onRightSide(ind))
-		{
-		}
-		else
-		{
-			availableFields[0] = ind + 4;
-			availableFields[1] = ind + 5;
-			return 2;
-		}
-		
+			
 	}
 
-	const int * getAvailable() const { return availableFields; }
+	bool canGoLeft(int ind, bool white)  { return white ? ind%16 != 0 : (ind+1)%16 != 0; }
+	bool canGoRight(int ind, bool white) { return white ? (ind+1)%16 != 0 : ind%16 != 0; }
 
-	void applyMove(const Board & b, const Move & m)
+	bool canGoDirection(int d, int ind, bool white) 
 	{
-	}
-
-	Move findMyMove(const Board & b)
-	{
-		return Move(Step(1,2));
-	}
-private:
-	static constexpr int maxAvailableFields = 12;
-	int availableFields[maxAvailableFields];
-
-	bool destReachable(int ind)
-	{
-		for(int i = 0; i < maxAvailableFields; ++i)
+		switch(d)
 		{
-			if(availableFields[i] == ind) return true;
-			return false;
+			case RightBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case Right:
+				if(white ? ind > 48 : ind < 9) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case LeftBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
+			case Left:
+				if(white ? ind > 48 : ind < 15) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
 		}
 	}
-	bool oddLine(int ind) {return !(ind % 2); }
-	bool onLeftSide(int ind) { return !(ind % 8); }
-	bool onRightSide(int ind) { return !(ind+1 % 8); }
 
+	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
 };
 
 class Game {

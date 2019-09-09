@@ -87,9 +87,13 @@ public:
 int options(int l, int m[], const int pa[], const int pb[], const int ka[], const int kb[], int t) {
   //this function finds all possible moves for a selected piece.
   //it returns the number of legal moves, but the argument m is where possible moves are written
-  //entries in m are the locations the move piece can end at
-  //l marks which piece is selected, m is set as an array of moves, pa, pb, ka and kb are a board, and t denotes whose turn it is
-  //z records how many legal moves this piece has, a stores whether the piece can move forward, and which team it is on, b stores the position of the moving piece
+  //m are the locations the move piece can end at
+  //l marks which piece is selected, m is set as an array of moves, pa, pb, ka and kb are a board, 
+	//t denotes whose turn it is
+  //z records how many legal moves this piece has, 
+	//a stores whether the piece can move forward, and which team it is on, 
+	//b stores the position of the moving piece
+	//
   int z = 0;
   int a = 0;
   int b = 0;
@@ -776,7 +780,7 @@ void loop () {
     }
   }
 }*/
-
+/*
 #include <vector>
 
 int main(void) 
@@ -839,3 +843,4 @@ int main(void)
 
 	return 0;
 }
+*/
