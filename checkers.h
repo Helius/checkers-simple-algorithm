@@ -224,8 +224,9 @@ public:
 		}
 	}
 
-	// все охуительно, только оно все варианты срубов пихает в один ход
-	void findTakes(const Board & b, int ind, bool white, Move & m, int from = -1)
+	// find only one move with takes, according to the rules, we have to take, but can choose
+	// what to take, so we just take something
+	bool findAnyTake(const Board & b, int ind, bool white, Move & m, int from = -1)
 	{
 		for(int i = 0; i < 4; ++i)
 		{
@@ -249,17 +250,25 @@ public:
 								newFrom = Left;
 							if(i == LeftBack)
 								newFrom = Right;
-							findTakes(b, newInd, white, m, newFrom);
+							findAnyTake(b, newInd, white, m, newFrom);
+							return true;
 						}
 					}
 				}
 			}
 		}
+		return false;
 	}
 
 	int findMoves(const Board & b, int ind, bool white, Move * m, bool takesOnly = false)
 	{
 		int count = 0;
+
+		// first we have to check can we take?
+		if(findAnyTake(b, ind, white, m[0]))
+		{
+			return m[0].size();
+		}
 
 		if(ind%16 != 0) // not left side
 		{

@@ -38,7 +38,7 @@ TEST(testFindNoTakesEmptyBoard, aiTest)
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
 	Move m;
-	ai.findTakes(b, 11, true, m);
+	ai.findAnyTake(b, 11, true, m);
 	EXPECT_EQ(m, Move());
 }
 
@@ -53,7 +53,7 @@ TEST(testFindOneTakes, aiTest)
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
 	Move m;
-	ai.findTakes(b, 11, true, m);
+	ai.findAnyTake(b, 11, true, m);
 	m.toString();
 	EXPECT_EQ(m, Move(Step(29, true)));
 }
@@ -69,7 +69,7 @@ TEST(testFindTwoTakes, aiTest)
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
 	Move m;
-	ai.findTakes(b, 11, true, m);
+	ai.findAnyTake(b, 11, true, m);
 	m.toString();
 	Move tm(Step(29, true));
 	tm.addStep(Step(43, true));
