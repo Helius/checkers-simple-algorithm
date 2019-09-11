@@ -45,34 +45,48 @@ public:
 class Move {
 
 public:
-	//Move() = delete;
+	
 	Move() = default;
 	Move(Step step) {
 		steps_[0] = step;
 		hasTakes_ = step.take;
 		stepCount_ = 1;
-		count_++;
 	}
-	~Move() { count_--; }
 
 	void toString()
 	{
 		std::cout << "******* Move [count][takes] " << stepCount_ << "| " << hasTakes_ << ": ";
-		for(int i = 0; i < stepCount_; ++i)
+		for(int j = 0; j < stepCount_; ++j)
 		{
-			std::cout << steps_[i].to << ",";
+			std::cout << steps_[j].to << ",";
 		}
 		std::cout << std::endl;
 	}
 
 	bool addStep(Step step)
 	{
-		if(stepCount_ == maxSteps_)
+		if(stepCount_ == maxSteps_ - 1)
 		{
 			return false;
 		}
 		steps_[stepCount_] = step;
-		hasTakes_ |= (step.take);
+		hasTakes_ |= step.take;
+		stepCount_++;
+		return true;
+	}
+
+	bool addStepBack(Step step)
+	{
+		if(stepCount_ == maxSteps_ - 1)
+		{
+			return false;
+		}
+		for(int i = stepCount_; i > 0; --i)
+		{
+			steps_[i] = steps_[i-1];
+		}
+		steps_[0] = step;
+		hasTakes_ |= step.take;
 		stepCount_++;
 		return true;
 	}
@@ -124,31 +138,15 @@ public:
 		return true;
 	}
 
-	bool operator<(const Move & move)
-	{
-		int mySum = 0;
-		int otherSum = 0;
-		for(int i = 0; i < size(); ++i)
-		{
-			mySum += getStep(i).to;
-		}
-		for(int i = 0; i < move.size(); ++i)
-		{
-			otherSum += move.getStep(i).to;
-		}
-		return mySum < otherSum;
-	}
-
-	static int count_;
+public:
+	static constexpr int maxSteps_ = 5;
 private:
 	// max number of take
-	static constexpr int maxSteps_ = 3;
 	int stepCount_ = 0;
 	Step steps_[maxSteps_];
 	bool hasTakes_ = false;
 };
 
-int Move::count_ = 0;
 
 #include <cstring>
 
@@ -196,6 +194,46 @@ public:
 
 private:
 };
+	
+class Moves
+{
+	public:
+
+		void addNew(Step s) 
+		{ 
+			if(count < size_) 
+			{
+				Move m(s);
+				moves[count++] = m;
+			}
+		}
+
+		int addToLast(Step s) 
+		{ 
+			if(count) 
+			{ 
+				moves[count-1].addStepBack(s); 
+			}
+		}
+
+		void toString() {
+			for(int i = 0; i < size(); ++i)
+			{
+				get(i).toString();
+			}
+		}
+
+		Move get(int i) const { return moves[i]; } 
+
+		void clear() { count = 0; }
+		int size() const { return count; }
+
+	private:
+		static constexpr int size_ = 5;
+		Move moves[size_];
+		int count = 0;
+};
+
 
 class CheckersAI {
 
@@ -223,6 +261,95 @@ public:
 				return white ? -9 : 9;
 		}
 	}
+
+	class Enimy
+	{
+		public:
+			void add(int taken) { e[ind++] = taken; }
+			bool hasTaken(int taken)
+			{
+				for(int i = 0; i < Move::maxSteps_; ++i)
+				{
+					if(e[i] == taken) return true;
+				}
+				return false;
+			}
+			void toString()
+			{
+				std::cout << "Enimy: ";
+				for(int i = 0; i < Move::maxSteps_; ++i)
+				{
+					std::cout << e[i] << ", ";
+				}
+				std::cout << std::endl;
+			}
+		private:
+			int ind = 0;
+			int e[Move::maxSteps_] = {-1};
+	};
+
+	int canTake(const Board & b, int dir, int ind, bool white, Enimy & enimy, int from = -1)
+	{
+		if(canGoDirection(dir, ind, white) && (dir != from))
+		{
+			int offs = offset(dir, white);
+			//TODO: fuck we are here yet!!!
+			if(!enimy.hasTaken(offs+ind) && (b.whoIsThere(ind + offs) == (white ? Black : White)) && canGoDirection(dir, ind + offs, white))
+			{
+				int newInd = ind + offs + offset(dir, white);
+				if((b.whoIsThere(newInd) == Empty))
+				{
+					enimy.add(ind+offs);
+					return newInd;
+				}
+			}
+		}
+		return -1;
+	}
+
+	void findAllTake(const Board & b, int ind, bool white, Moves & m)
+	{
+		Enimy enimy;
+		findAllTake(b, ind, white, m, enimy, -1);
+	}
+
+	// recurcive find less than size moves with takes
+	void findAllTake(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1)
+	{
+		bool takesFound = false;
+
+		for(int i = 0; i < 4; ++i)
+		{
+			int newInd = canTake(b, i, ind, white, enimy, from);
+			if(newInd != -1)
+			{
+				std::cout << "we " << ind << " check " << newInd << std::endl;
+				takesFound |= true;
+
+				// go dipper
+				int newFrom = -1;
+				if(i == Right)
+					newFrom = LeftBack;
+				if(i == Left)
+					newFrom = RightBack;
+				if(i == RightBack)
+					newFrom = Left;
+				if(i == LeftBack)
+					newFrom = Right;
+
+				findAllTake(b, newInd, white, m, enimy, newFrom);
+				if(from != -1) {
+					m.addToLast(Step(ind, true));
+				}
+			}
+		}
+		if(!takesFound && (from != -1))
+		{
+			std::cout << "reached end, add new for " << ind << std::endl;
+			m.addNew(Step(ind, true));
+		}
+	}
+						
 
 	// find only one move with takes, according to the rules, we have to take, but can choose
 	// what to take, so we just take something
@@ -260,103 +387,54 @@ public:
 		return false;
 	}
 
-	int findMoves(const Board & b, int ind, bool white, Move * m, bool takesOnly = false)
+	int findMoves(const Board & b, int ind, bool white, Moves & m)
 	{
 		int count = 0;
+		m.clear();
 
 		// first we have to check can we take?
-		if(findAnyTake(b, ind, white, m[0]))
+		findAllTake(b, ind, white, m);
+		if(int size = m.size())
 		{
-			return m[0].size();
+			return size;
 		}
 
-		if(ind%16 != 0) // not left side
+		for(int i = 0; i < 2; ++i)
 		{
-			// just move
-			if(!takesOnly && (b.whoIsThere(white ? ind+7 : ind-9) == Empty))
+			int newInd = offset(i, white) + ind;
+			if(canGoDirection(i, ind, white))
 			{
-				m[count++] = Move(Step(white ? ind+7 : ind-9));
-			} // can we take?
-			else if(b.whoIsThere(white ? ind+7 : ind-9) == (white ? Black : White))
-			{
-				//TODO: if we can take, do recursive(b, ind, white, currentMove, takeOnly = true)
-				//
-				//
-				// check we're not jumping over side and it's empty
-				if(((white ? ind+7 : ind-9)%16 != 0) 
-						&& (b.whoIsThere(white ? ind+7+7 : ind-9-9) == Empty))
+				if(b.whoIsThere(newInd) == Empty)
 				{
-					m[count++] = Move(Step(white ? ind+7+7 : ind-9-9, true));
-					takesOnly = true;
+					m.addNew(Step(newInd, false));
 				}
-			}
+			}	
 		}
-		if((ind+1)%16 != 0) // not right side
-		{
-			if(!takesOnly && (b.whoIsThere(white ? ind+9 : ind-7) == Empty))
-			{
-				m[count++] = Move(Step(white ? ind+9 : ind-7));
-			}
-			else if(b.whoIsThere(white ? ind+9 : ind-7) == (white ? Black : White))
-			{
-				// check we're not jumping over side and it's empty
-				if((((white ? ind+9 : ind-7)+1)%16 != 0) 
-						&& (b.whoIsThere(white ? ind+9+9 : ind-7-7) == Empty))
-				{
-					m[count++] = Move(Step(white ? ind+9+9 : ind-7-7, true));
-					takesOnly = true;
-				}
-			}
-		}
-
-		int newCount = count;
-		if(takesOnly) 
-		{
-			// get rid of notHasTake moves
-			for(int j = 0; j < count; ++j)
-			{
-				if(!m[j].hasTakes())
-				{
-					m[j].toString();
-					newCount--;
-					for(int i = j; i < count; ++i)
-					{
-							m[i] = m[i+1];
-					}
-				}
-			}
-		}
-		return newCount;
+		return m.size();
 	}
 
-	int canPieceTake(const Board & b, int direction, int ind, bool white)
+	bool canGoDirection(int dir, int ind, bool white) 
 	{
-			
-	}
-
-	bool canGoLeft(int ind, bool white)  { return white ? ind%16 != 0 : (ind+1)%16 != 0; }
-	bool canGoRight(int ind, bool white) { return white ? (ind+1)%16 != 0 : ind%16 != 0; }
-
-	bool canGoDirection(int d, int ind, bool white) 
-	{
-		switch(d)
+		switch(dir)
 		{
 			case RightBack:
 				if(white ? ind < 9 : ind > 54) return false;
 				return white ? (ind+1)%16 != 0 : ind%16 != 0;
 			case Right:
-				if(white ? ind > 48 : ind < 9) return false;
+				if(white ? ind > 63 : ind < 0) return false;
 				return white ? (ind+1)%16 != 0 : ind%16 != 0;
 			case LeftBack:
 				if(white ? ind < 9 : ind > 54) return false;
 				return white ? ind%16 != 0 : (ind+1)%16 != 0;
 			case Left:
-				if(white ? ind > 48 : ind < 15) return false;
+				if(white ? ind > 63 : ind < 0) return false;
 				return white ? ind%16 != 0 : (ind+1)%16 != 0;
 		}
 	}
 
 	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
+
+		
 };
 
 class Game {
