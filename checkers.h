@@ -265,6 +265,10 @@ public:
 	class Enimy
 	{
 		public:
+			Enimy() = delete;
+			Enimy(int original)
+				: orig(original)
+			{}
 			void add(int taken) { e[ind++] = taken; }
 			bool hasTaken(int taken)
 			{
@@ -283,21 +287,28 @@ public:
 				}
 				std::cout << std::endl;
 			}
+		public:
+			int orig = -1;
 		private:
 			int ind = 0;
 			int e[Move::maxSteps_] = {-1};
 	};
 
+	//TODO: there is bug or feature: "fuck we are still here!"
+	// we can't detect all takes in loop when check clockwise direction
+	// because we've checked already ccw direction and detect it correctly
+	// think how to remove this branch of unnecessary work
 	int canTake(const Board & b, int dir, int ind, bool white, Enimy & enimy, int from = -1)
 	{
 		if(canGoDirection(dir, ind, white) && (dir != from))
 		{
 			int offs = offset(dir, white);
-			//TODO: fuck we are here yet!!!
-			if(!enimy.hasTaken(offs+ind) && (b.whoIsThere(ind + offs) == (white ? Black : White)) && canGoDirection(dir, ind + offs, white))
+			if(!enimy.hasTaken(offs+ind) 
+					&& (b.whoIsThere(ind + offs) == (white ? Black : White)) 
+					&& canGoDirection(dir, ind + offs, white))
 			{
 				int newInd = ind + offs + offset(dir, white);
-				if((b.whoIsThere(newInd) == Empty))
+				if((b.whoIsThere(newInd) == Empty) || newInd == enimy.orig)
 				{
 					enimy.add(ind+offs);
 					return newInd;
@@ -309,7 +320,7 @@ public:
 
 	void findAllTake(const Board & b, int ind, bool white, Moves & m)
 	{
-		Enimy enimy;
+		Enimy enimy(ind);
 		findAllTake(b, ind, white, m, enimy, -1);
 	}
 
@@ -323,7 +334,7 @@ public:
 			int newInd = canTake(b, i, ind, white, enimy, from);
 			if(newInd != -1)
 			{
-				std::cout << "we " << ind << " check " << newInd << std::endl;
+				//std::cout << "we " << ind << " check " << newInd << std::endl;
 				takesFound |= true;
 
 				// go dipper
@@ -345,7 +356,7 @@ public:
 		}
 		if(!takesFound && (from != -1))
 		{
-			std::cout << "reached end, add new for " << ind << std::endl;
+			//std::cout << "reached end, add new for " << ind << std::endl;
 			m.addNew(Step(ind, true));
 		}
 	}
