@@ -23,7 +23,7 @@ b ┃   ┃ 9 ┃   ┃ 11┃   ┃ 13┃   ┃ 15┃
   ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
 a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
   ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-    1   2   3   4   5   6   7   8 
+	1   2   3   4   5   6   7   8
  */
 
 TEST(testFindNoTakesEmptyBoard, aiTest)
@@ -39,6 +39,63 @@ TEST(testFindNoTakesEmptyBoard, aiTest)
 	Move m;
 	ai.findAnyTake(b, 11, true, m);
 	EXPECT_EQ(m, Move());
+}
+
+TEST(testKingFindOneTake, aiTest)
+{
+	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves m;
+	CheckersAI::Enimy e(0);
+	ai.findAllKingTakes(b, 11, true, m, e);
+	//m.toString();
+	//EXPECT_EQ(m, Move(Step(29, true)));
+}
+
+TEST(testKingFindFirstEnimy, aiTest)
+{
+	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Right, 11, true),29);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Left, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::RightBack, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::LeftBack, 11, true),-1);
+
+
+	pB[1] = 29;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Right, 11, true),38);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Left, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::RightBack, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::LeftBack, 11, true),-1);
+
+	pB[1] = 25;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Right, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Left, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::RightBack, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::LeftBack, 11, true),-1);
+
+	pB[1] = 20;
+	pB[2] = 29;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Right, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::Left, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::RightBack, 11, true),-1);
+	EXPECT_EQ(ai.findFirstEnimy(b, CheckersAI::LeftBack, 11, true),-1);
+
 }
 
 TEST(testFindOneTakes, aiTest)
@@ -89,11 +146,11 @@ TEST(testFindAllTakes, aiTest)
 	ai.findAllTake(b, 11, true, ms);
 
 	EXPECT_EQ(ms.size(), 3);
-	
+
 	Move m1(Step(43, true));
 	m1.addStep(Step(61, true));
 	EXPECT_EQ(ms.get(0), m1);
-	
+
 	Move m2(Step(29, true));
 	m2.addStep(Step(43, true));
 	m2.addStep(Step(57, true));
@@ -103,26 +160,6 @@ TEST(testFindAllTakes, aiTest)
 	EXPECT_EQ(ms.get(2), Move(Step(25,true)));
 }
 
-/*
-  ┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓
-h ┃   ┃ 57┃   ┃ 59┃   ┃ 61┃   ┃ 63┃
-  ┣━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┫
-g ┃ 48┃   ┃ 50┃   ┃ 52┃   ┃ 54┃   ┃
-  ┣━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┫
-f ┃   ┃ 41┃   ┃ 43┃   ┃ 45┃   ┃ 47┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-e ┃ 32┃   ┃ 34┃   ┃ 36┃   ┃ 38┃   ┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-d ┃   ┃ 25┃   ┃ 27┃   ┃ 29┃   ┃ 31┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-c ┃ 16┃   ┃ 18┃   ┃ 20┃   ┃ 22┃   ┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-b ┃   ┃ 9 ┃   ┃ 11┃   ┃ 13┃   ┃ 15┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
-  ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
-    1   2   3   4   5   6   7   8 
- */
 TEST(testFindAllTakesReturnSamePlace, aiTest)
 {
 	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -138,7 +175,7 @@ TEST(testFindAllTakesReturnSamePlace, aiTest)
 	//ms.toString();
 
 	EXPECT_EQ(ms.size(), 2);
-	
+
 	Move m1(Step(29, true));
 	m1.addStep(Step(43, true));
 	m1.addStep(Step(25, true));
@@ -164,7 +201,7 @@ TEST(testFindAllTakesWithouLoop, aiTest)
 	//ms.toString();
 
 	EXPECT_EQ(ms.size(), 2);
-	
+
 	Move m1(Step(20, true));
 	m1.addStep(Step(38, true));
 	m1.addStep(Step(52, true));
@@ -172,7 +209,7 @@ TEST(testFindAllTakesWithouLoop, aiTest)
 
 	EXPECT_EQ(ms.get(0).size(), 4);
 	EXPECT_EQ(ms.get(0), m1);
-	
+
 	Move m2(Step(20, true));
 	m2.addStep(Step(34, true));
 	m2.addStep(Step(52, true));
@@ -199,32 +236,32 @@ TEST(testOffsetForPeise, aiTest)
 TEST(testAIDetectBoardBorders, aiTest)
 {
 	CheckersAI ai;
-	
+
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 0, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Left, 0, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 0, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::LeftBack, 0, true));
-	
+
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 2, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 2, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 2, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::LeftBack, 2, true));
-	
+
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 11, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 11, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::RightBack, 11, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 11, true));
-	
+
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 15, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 15, true));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 15, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 15, true));
-	
+
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 59, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 59, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::RightBack, 59, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 59, true));
-	
+
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 32, false));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 32, false));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 32, false));
@@ -232,7 +269,7 @@ TEST(testAIDetectBoardBorders, aiTest)
 
 	EXPECT_FALSE(ai.onKingSide(0, true));
 	EXPECT_TRUE(ai.onKingSide(0, false));
-	
+
 	EXPECT_TRUE(ai.onKingSide(57, true));
 	EXPECT_FALSE(ai.onKingSide(57, false));
 }
@@ -294,7 +331,7 @@ TEST(testFindBaseMovesForPieceWithTake, aiTest)
 	// шашка заблокирована с одной диагонали и должна рубить 1раз по другой
 	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 1);
 	EXPECT_EQ(m.get(0), Move(Step(36, true)));
-	
+
 	// шашка заблокирована с одной диагонали и не рубит за пределы доски влево
 	EXPECT_EQ(ai.findMoves(b, 9, true,  m), 0);
 }

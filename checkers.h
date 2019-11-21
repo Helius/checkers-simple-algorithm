@@ -1,6 +1,7 @@
 #pragma once
 
 //TODO: for desktop only!!
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
@@ -45,7 +46,7 @@ public:
 class Move {
 
 public:
-	
+
 	Move() = default;
 	Move(Step step) {
 		steps_[0] = step;
@@ -94,7 +95,7 @@ public:
 	int size() const {
 		return stepCount_;
 	}
-	
+
 	const Step getStep(int ind) const
 	{
 		if(ind >= maxSteps_)
@@ -107,7 +108,7 @@ public:
 	bool hasTakes() const { return hasTakes_; }
 
 	bool operator== (const Move & m) const
-	{	
+	{
 		std::vector<Step> va;
 		std::vector<Step> vb;
 
@@ -127,7 +128,7 @@ public:
 		{
 			return false;
 		}
-		
+
 		for(int i = 0; i < va.size(); ++i)
 		{
 			if(!(va[i] == vb[i]))
@@ -155,7 +156,7 @@ private:
 // the whites start from 1a
 class Board {
 
-public:	
+public:
 	static constexpr int rowSize_ = 12;
 
 	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
@@ -170,49 +171,58 @@ public:
 		memcpy(kA, ka, sizeof(kA));
 		memcpy(kB, kb, sizeof(kB));
 	}
-	
+
 	Fld whoIsThere(int ind) const
 	{
-		for(int i = 0; i < 12; ++i) {
-			if(pA[i] == ind) {
-				if(kA[i] == 1)
-					return WhiteKing;
-				else
-					return White;
+		for (int i = 0; i < 12; ++i) {
+			if (pA[i] == ind)
+			{
+				return White;
 			}
-		}
-		for(int i = 0; i < 12; ++i) {
-			if(pB[i] == ind) {
-				if(kB[i] == 1)
-					return BlackKing;
-				else
-					return Black;
+			else if (pB[i] == ind)
+			{
+				return Black;
 			}
 		}
 		return Empty;
 	}
 
+	bool isItKing(int ind) const
+	{
+		for (int i = 0; i < 12; ++i) {
+			if (pA[i] == ind && kA[i])
+			{
+				return true;
+			}
+			else if (pB[i] == ind && kB[i])
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 private:
 };
-	
+
 class Moves
 {
 	public:
 
-		void addNew(Step s) 
-		{ 
-			if(count < size_) 
+		void addNew(Step s)
+		{
+			if(count < size_)
 			{
 				Move m(s);
 				moves[count++] = m;
 			}
 		}
 
-		int addToLast(Step s) 
-		{ 
-			if(count) 
-			{ 
-				moves[count-1].addStepBack(s); 
+		int addToLast(Step s)
+		{
+			if(count)
+			{
+				moves[count-1].addStepBack(s);
 			}
 		}
 
@@ -223,7 +233,7 @@ class Moves
 			}
 		}
 
-		Move get(int i) const { return moves[i]; } 
+		Move get(int i) const { return moves[i]; }
 
 		void clear() { count = 0; }
 		int size() const { return count; }
@@ -294,17 +304,80 @@ public:
 			int e[Move::maxSteps_] = {-1};
 	};
 
-	//TODO: there is bug or feature: "fuck we are still here!"
-	// we can't detect all takes in loop when check clockwise direction
-	// because we've checked already ccw direction and detect it correctly
-	// think how to remove this branch of unnecessary work
-	int canTake(const Board & b, int dir, int ind, bool white, Enimy & enimy, int from = -1)
+	// walk forward until find an animy and an empty place after it, return ind of this place
+	int findFirstEnimy(const Board & b, int dir, int ind, bool white)
 	{
-		if(canGoDirection(dir, ind, white) && (dir != from))
+		while(canGoDirection(dir, ind, white))
 		{
 			int offs = offset(dir, white);
-			if(!enimy.hasTaken(offs+ind) 
-					&& (b.whoIsThere(ind + offs) == (white ? Black : White)) 
+
+			if (b.whoIsThere(ind + offs) == (white ? Black : White))
+			{
+				int indAfterEnimy = ind + offs + offset(dir, white);
+				std::cout << "findFirst.. next after enemy" << indAfterEnimy << ", " << b.whoIsThere(indAfterEnimy) << std::endl;
+				if(canGoDirection(dir, indAfterEnimy, white) && b.whoIsThere(indAfterEnimy) == Empty) {
+					return indAfterEnimy;
+				}
+				else
+				{
+					return -1; // can't walk further
+				}
+			}
+			ind += offs;
+		}
+		return -1;
+	}
+
+	void findAllKingTakes(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1)
+	{
+		bool takesFound = false;
+
+		for(int i = 0; i < 4; ++i)
+		{
+			int newInd = findFirstEnimy(b, i, ind, white);
+			if(newInd != -1 && enimy.hasTaken(newInd))
+			{
+				takesFound |= 1;
+				enimy.add(newInd);
+
+				// go dipper
+				int newFrom = -1;
+				if(i == Right)
+					newFrom = LeftBack;
+				if(i == Left)
+					newFrom = RightBack;
+				if(i == RightBack)
+					newFrom = Left;
+				if(i == LeftBack)
+					newFrom = Right;
+
+				findAllKingTakes(b, newInd, white, m, enimy, newFrom);
+				if(from != -1) {
+					m.addToLast(Step(ind, true));
+				}
+			}
+		}
+		if(!takesFound && (from != -1))
+		{
+			//std::cout << "reached end, add new for " << ind << std::endl;
+			m.addNew(Step(ind, true));
+		}
+	}
+
+
+	//TODO: there is a bug or a feature: "fuck we are still here!"
+	// we can't detect all takes in loop when check clockwise direction
+	// because we've checked already ccw direction and detect it correctly
+	// Thinking how to remove this branch of unnecessary work
+	//
+	// return ind after taking peice at ind with dir or -1
+	int canTake(const Board & b, int dir, int ind, bool white, Enimy & enimy, int from = -1)
+	{
+		if((dir != from) && canGoDirection(dir, ind, white))
+		{
+			int offs = offset(dir, white);
+			if(!enimy.hasTaken(offs+ind)
+					&& (b.whoIsThere(ind + offs) == (white ? Black : White))
 					&& canGoDirection(dir, ind + offs, white))
 			{
 				int newInd = ind + offs + offset(dir, white);
@@ -324,7 +397,7 @@ public:
 		findAllTake(b, ind, white, m, enimy, -1);
 	}
 
-	// recurcive find less than size moves with takes
+	// recurcive find less than size moves with takes for piece
 	void findAllTake(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1)
 	{
 		bool takesFound = false;
@@ -360,7 +433,7 @@ public:
 			m.addNew(Step(ind, true));
 		}
 	}
-						
+
 
 	// find only one move with takes, according to the rules, we have to take, but can choose
 	// what to take, so we just take something
@@ -419,12 +492,12 @@ public:
 				{
 					m.addNew(Step(newInd, false));
 				}
-			}	
+			}
 		}
 		return m.size();
 	}
 
-	bool canGoDirection(int dir, int ind, bool white) 
+	bool canGoDirection(int dir, int ind, bool white)
 	{
 		switch(dir)
 		{
@@ -445,12 +518,12 @@ public:
 
 	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
 
-		
+
 };
 
 class Game {
 public:
-	void reset() 
+	void reset()
 	{}
 
 	bool applyTheirMove()
