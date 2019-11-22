@@ -190,11 +190,11 @@ public:
 	bool isItKing(int ind) const
 	{
 		for (int i = 0; i < 12; ++i) {
-			if (pA[i] == ind && kA[i])
+			if ((pA[i] == ind) && kA[i])
 			{
 				return true;
 			}
-			else if (pB[i] == ind && kB[i])
+			else if ((pB[i] == ind) && kB[i])
 			{
 				return true;
 			}
@@ -239,7 +239,7 @@ class Moves
 		int size() const { return count; }
 
 	private:
-		static constexpr int size_ = 5;
+		static constexpr int size_ = 8;
 		Move moves[size_];
 		int count = 0;
 };
@@ -280,6 +280,7 @@ public:
 				: orig(original)
 			{}
 			void add(int taken) { e[ind++] = taken; }
+			int lastTaken() { return e[ind-1]; }
 			bool hasTaken(int taken)
 			{
 				for(int i = 0; i < Move::maxSteps_; ++i)
@@ -288,6 +289,7 @@ public:
 				}
 				return false;
 			}
+			bool isOriginal(int ind) {return orig == ind; }
 			void toString()
 			{
 				std::cout << "Enimy: ";
@@ -305,17 +307,23 @@ public:
 	};
 
 	// walk forward until find an animy and an empty place after it, return ind of this place
-	int findFirstEnimy(const Board & b, int dir, int ind, bool white)
+	int takeFirstEnimy(const Board & b, int dir, int ind, bool white, Enimy & enimy, std::string nest = std::string())
 	{
 		while(canGoDirection(dir, ind, white))
 		{
 			int offs = offset(dir, white);
+			std::cout << nest << "check from " << ind << ", dir: " << dir << " to " << ind + offs << std::endl;
+			enimy.toString();
 
-			if (b.whoIsThere(ind + offs) == (white ? Black : White))
+			if (b.whoIsThere(ind + offs) == (white ? Black : White) && !enimy.hasTaken(ind + offs))
 			{
 				int indAfterEnimy = ind + offs + offset(dir, white);
-				std::cout << "findFirst.. next after enemy" << indAfterEnimy << ", " << b.whoIsThere(indAfterEnimy) << std::endl;
-				if(canGoDirection(dir, indAfterEnimy, white) && b.whoIsThere(indAfterEnimy) == Empty) {
+
+				std::cout << nest << "detected! dest " << indAfterEnimy << ", empty? " << ((b.whoIsThere(indAfterEnimy) == Empty || enimy.isOriginal(indAfterEnimy)) ? "yes" : "no") << std::endl;
+
+				if(canGoDirection(dir, ind+offs, white) && ((b.whoIsThere(indAfterEnimy) == Empty) || enimy.isOriginal(indAfterEnimy)) && !enimy.hasTaken(ind+offs)) {
+
+					enimy.add(ind + offs);
 					return indAfterEnimy;
 				}
 				else
@@ -328,17 +336,28 @@ public:
 		return -1;
 	}
 
-	void findAllKingTakes(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1)
+	std::string prefix(int nest) {
+		std::string result;
+		for(int i = 0; i < nest; ++i) {
+			result += "\t";
+		}
+		return result;
+	}
+
+	void findAllKingTakes(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1, int nest = 0)
 	{
+		nest++;
+
 		bool takesFound = false;
+		std::cout << prefix(nest) << "=========== start from " << ind << ", dir" << from << std::endl;
 
 		for(int i = 0; i < 4; ++i)
 		{
-			int newInd = findFirstEnimy(b, i, ind, white);
-			if(newInd != -1 && enimy.hasTaken(newInd))
+			int newInd = takeFirstEnimy(b, i, ind, white, enimy, prefix(nest));
+			std::cout <<  prefix(nest) <<"and we now at " << newInd << std::endl;
+			if(newInd != -1)
 			{
 				takesFound |= 1;
-				enimy.add(newInd);
 
 				// go dipper
 				int newFrom = -1;
@@ -351,7 +370,7 @@ public:
 				if(i == LeftBack)
 					newFrom = Right;
 
-				findAllKingTakes(b, newInd, white, m, enimy, newFrom);
+				findAllKingTakes(b, newInd, white, m, enimy, newFrom, nest);
 				if(from != -1) {
 					m.addToLast(Step(ind, true));
 				}
@@ -359,7 +378,7 @@ public:
 		}
 		if(!takesFound && (from != -1))
 		{
-			//std::cout << "reached end, add new for " << ind << std::endl;
+			std::cout << prefix(nest) << "reached end, add new for " << ind << std::endl;
 			m.addNew(Step(ind, true));
 		}
 	}
