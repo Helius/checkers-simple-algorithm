@@ -92,7 +92,7 @@ public:
 		return true;
 	}
 
-	int size() const {
+	inline int size() const {
 		return stepCount_;
 	}
 
@@ -106,6 +106,10 @@ public:
 	}
 
 	bool hasTakes() const { return hasTakes_; }
+
+	bool operator() (const Move & m) const{
+		return m.size();
+	}
 
 	bool operator== (const Move & m) const
 	{
@@ -208,6 +212,16 @@ private:
 class Moves
 {
 	public:
+
+		Move & clone(Move m, Step s)
+		{
+			if(count < size_) {
+				Move m(s);
+				moves[count++] = m;
+				return m;
+			}
+			return Move();
+		}
 
 		void addNew(Step s)
 		{
