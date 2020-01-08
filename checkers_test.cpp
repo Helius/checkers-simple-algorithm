@@ -3,8 +3,6 @@
 #include "gtest/gtest.h"
 #include "checkers.h"
 
-//#include "checkersAI.cpp"
-
 /*
   ┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓
 h ┃   ┃ 57┃   ┃ 59┃   ┃ 61┃   ┃ 63┃
@@ -24,8 +22,109 @@ b ┃   ┃ 9 ┃   ┃ 11┃   ┃ 13┃   ┃ 15┃
 a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
   ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
 	1   2   3   4   5   6   7   8
- */
+*/
 
+TEST(testNewKingCircularTakes, aiTest) {
+	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 2);
+	EXPECT_EQ(m.size(), 4);
+	//EXPECT_EQ(m.getStep(0), Step(45,27));
+	//EXPECT_EQ(m.getStep(1), Step(59,52));
+}
+
+TEST(testNewKingTakeCornerWithGap, aiTest) {
+	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {27, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 0);
+	EXPECT_EQ(m.size(), 2);
+	EXPECT_EQ(m.getStep(0), Step(45,27));
+	EXPECT_EQ(m.getStep(1), Step(59,52));
+}
+
+TEST(testNewKingTakeCorner, aiTest) {
+	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {27, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 0);
+	EXPECT_EQ(m.size(), 2);
+	EXPECT_EQ(m.getStep(0), Step(36,27));
+	EXPECT_EQ(m.getStep(1), Step(50,43));
+}
+
+TEST(testNewKingTakeWithGap, aiTest) {
+	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 0);
+	EXPECT_EQ(m.size(), 1);
+	EXPECT_EQ(m.getStep(0), Step(54,45));
+}
+
+TEST(testNewKingTakeTwice, aiTest) {
+	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {36, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 27);
+	EXPECT_EQ(m.size(), 2);
+	EXPECT_EQ(m.getStep(0), Step(45,36));
+	EXPECT_EQ(m.getStep(1), Step(63,54));
+}
+
+TEST(testNewKingTake, aiTest) {
+	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 27);
+	EXPECT_EQ(m.size(), 1);
+	EXPECT_EQ(m.getStep(0), Step(45,36));
+}
+
+TEST(testNoNewKingTake, aiTest) {
+	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 27);
+	EXPECT_EQ(m.size(), 0);
+}
+/*
 TEST(testKingCircularTakes, aiTest)
 {
 	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -122,6 +221,7 @@ TEST(testKingTwoHopeNearTakes, aiTest)
 	EXPECT_EQ(m.get(0).getStep(1), Step(47,true));
 }
 
+
 TEST(testKingFindFirstEnimy, aiTest)
 {
 	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -163,6 +263,19 @@ TEST(testKingFindFirstEnimy, aiTest)
 
 }
 
+TEST(testMoves, aiTest)
+{
+	Moves mvs;
+	Move & m = mvs.addNew(Step(3,true));
+	Move & m1 = mvs.clone(m, Step(5, false));
+	EXPECT_EQ(m.size(), 1);
+	EXPECT_EQ(m1.size(), 2);
+	EXPECT_EQ(mvs.size(), 2);
+	EXPECT_EQ(mvs.get(0).getStep(0), Step(3, true));
+	EXPECT_EQ(mvs.get(1).getStep(0), Step(3, true));
+	EXPECT_EQ(mvs.get(1).getStep(1), Step(5, false));
+}
+*/
 TEST(testFindNoTakesEmptyBoard, aiTest)
 {
 	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

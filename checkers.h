@@ -15,33 +15,105 @@ enum Fld {
 };
 
 class Step {
-public:
-	Step(){};
-	Step(int t, bool tk = false)
-		: to(t)
-		, take(tk)
+	public:
+		Step() = default;
+		Step(int toInd, int takeInd = -1)
+		: to(toInd)
+		, take(takeInd)
 	{}
-public:
-	inline bool isValid() const
-	{
-		return (to != -1);
-	}
+	public:
+		inline bool isValid() const
+		{
+			return (to != -1);
+		}
 
-  bool operator < (const Step & s) const
-  {
-		return (to < s.to);
-  }
+		bool operator < (const Step & s) const
+		{
+			return (to < s.to);
+		}
 
-	bool operator== (const Step & s) const
-	{
-		return (to == s.to) && (take == s.take);
-	}
+		bool operator== (const Step & s) const
+		{
+			return (to == s.to) && (take == s.take);
+		}
+		inline bool hasTake() {return  take != -1;}
 
-public:
-	int to = -1;
-	int take = 0;
+	public:
+		int to = -1;
+		int take = -1;
 };
 
+
+class Move2 {
+
+	public:
+
+		Move2() = default;
+
+		Move2(int fromInd)
+			: from(fromInd)
+		{}
+
+		bool addStep(Step step)
+		{
+			if(stepCount_ == maxSteps_ - 1)
+			{
+				return false;
+			}
+			steps_[stepCount_] = step;
+			hasTakes_ |= step.hasTake();
+			stepCount_++;
+			return true;
+		}
+
+		inline int currentInd() const {
+			if(stepCount_ == 0) {
+				return from;
+			} else {
+				return steps_[stepCount_ - 1].to;
+			}
+
+		}
+
+		inline int size() const {
+			return stepCount_;
+		}
+
+		const Step getStep(int ind) const
+		{
+			if(ind >= maxSteps_)
+			{
+				return Step();
+			}
+			return steps_[ind];
+		}
+
+		bool hasTakes() const { return hasTakes_; }
+
+		bool alreadyTaken(int ind) const {
+			for(int i = 0; i < stepCount_; ++i) {
+				if(steps_[i].take == ind) {
+					return true;
+				}
+			}
+			return false;
+		} 
+
+		bool operator() (const Move2 & m) const{
+			return m.size() > 0;
+		}
+
+		int getFrom() const { return from; }
+
+	public:
+		static constexpr int maxSteps_ = 5;
+	private:
+		int stepCount_ = 0;
+		Step steps_[maxSteps_];
+		bool hasTakes_ = false;
+	private:
+		int from = -1;
+};
 
 class Move {
 
@@ -71,7 +143,7 @@ public:
 			return false;
 		}
 		steps_[stepCount_] = step;
-		hasTakes_ |= step.take;
+		hasTakes_ |= step.hasTake();
 		stepCount_++;
 		return true;
 	}
@@ -87,7 +159,7 @@ public:
 			steps_[i] = steps_[i-1];
 		}
 		steps_[0] = step;
-		hasTakes_ |= step.take;
+		hasTakes_ |= step.hasTake();
 		stepCount_++;
 		return true;
 	}
@@ -152,6 +224,58 @@ private:
 	bool hasTakes_ = false;
 };
 
+class Moves
+{
+	public:
+
+		Move & clone(Move & m, Step s)
+		{
+			if(count < size_) {
+				moves[count++] = m;
+				moves[count-1].addStep(s);
+				return moves[count-1];
+			}
+			return invalidMove;
+		}
+
+		Move & addNew(Step s)
+		{
+			if(count < size_)
+			{
+				Move m(s);
+				moves[count++] = m;
+				return moves[count-1];
+			}
+			return invalidMove;
+		}
+
+		int addToLast(Step s)
+		{
+			if(count)
+			{
+				moves[count-1].addStepBack(s);
+			}
+		}
+
+		void toString() {
+			for(int i = 0; i < size(); ++i)
+			{
+				get(i).toString();
+			}
+		}
+
+		Move get(int i) const { return moves[i]; }
+
+		void clear() { count = 0; }
+		int size() const { return count; }
+
+	private:
+		static constexpr int size_ = 8;
+		Move moves[size_];
+		Move invalidMove = Move();
+		int count = 0;
+};
+
 
 #include <cstring>
 
@@ -209,55 +333,6 @@ public:
 private:
 };
 
-class Moves
-{
-	public:
-
-		Move & clone(Move m, Step s)
-		{
-			if(count < size_) {
-				Move m(s);
-				moves[count++] = m;
-				return m;
-			}
-			return Move();
-		}
-
-		void addNew(Step s)
-		{
-			if(count < size_)
-			{
-				Move m(s);
-				moves[count++] = m;
-			}
-		}
-
-		int addToLast(Step s)
-		{
-			if(count)
-			{
-				moves[count-1].addStepBack(s);
-			}
-		}
-
-		void toString() {
-			for(int i = 0; i < size(); ++i)
-			{
-				get(i).toString();
-			}
-		}
-
-		Move get(int i) const { return moves[i]; }
-
-		void clear() { count = 0; }
-		int size() const { return count; }
-
-	private:
-		static constexpr int size_ = 8;
-		Move moves[size_];
-		int count = 0;
-};
-
 
 class CheckersAI {
 
@@ -285,6 +360,111 @@ public:
 				return white ? -9 : 9;
 		}
 	}
+
+	int calcNewFrom(int i)
+	{
+		int newFrom = -1;
+		if(i == Right)
+			newFrom = LeftBack;
+		if(i == Left)
+			newFrom = RightBack;
+		if(i == RightBack)
+			newFrom = Left;
+		if(i == LeftBack)
+			newFrom = Right;
+		return newFrom;
+	}
+
+	Step eatEnemy(const Board & b, const int dir, int ind, const bool white, const Move2 & m)
+	{
+		while(canGoDirection(dir, ind, white))
+		{
+			int offs = offset(dir, white);
+			
+			if (b.whoIsThere(ind + offs) == (white ? Black : White) && !m.alreadyTaken(ind + offs))
+			{
+				int indAfterEnemy = ind + offs + offset(dir, white);
+
+				if(canGoDirection(dir, ind+offs, white) && (
+						(b.whoIsThere(indAfterEnemy) == Empty) 
+						|| indAfterEnemy == m.getFrom() 
+						|| m.alreadyTaken(indAfterEnemy)))
+					{
+					return Step(indAfterEnemy, ind+offs);
+				} else {
+					return Step();
+				}
+			}
+			else if ((b.whoIsThere(ind + offs) == Empty) || m.alreadyTaken(ind + offs))
+			{
+				ind += offs;
+			}
+			else
+			{
+				return Step();
+			}
+		}
+		return Step();
+	}
+
+	
+	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const int from = -1)
+	{
+		Move2 resultMove;
+
+		int ind = m.currentInd();
+
+		// check all directions
+		for(int dir = 0; dir < 4; ++dir)
+		{
+			if(dir != from)
+			{
+				Step step = eatEnemy(b, dir, ind, white, m);
+				
+				if(step.isValid()) 
+				{
+					Move2 nextMove = m;
+					nextMove.addStep(step);
+					// update if longer
+					if(nextMove.size() > resultMove.size()) {
+						resultMove = nextMove;
+					}
+
+					Move2 move = findLongestTake(b, nextMove, white, calcNewFrom(dir));
+					// update if longer
+					if(move.size() > resultMove.size()) {
+						resultMove = move;
+					}
+					// check other empty spaces after enemy we can land
+					while(canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
+						Move2 additionalMove = m;
+						step.to = step.to + offset(dir, white);
+						additionalMove.addStep(step);
+						/*
+						if(additionalMove.size() > resultMove.size()) {
+							resultMove = additionalMove;
+						}*/
+						Move2 additionalResult = findLongestTake(b, additionalMove, white, calcNewFrom(dir));
+						if(additionalResult.size() > resultMove.size()) {
+							resultMove = additionalResult;
+						}
+					}
+				}
+			}
+		}
+
+		// finally return longest if it exist or empty move
+		return resultMove;
+	}
+
+	Move2 findLongestTake(const Board & b, const bool white, const int startInd = -1)
+	{
+		// so we have start index and 4 direction to search
+		Move2 m(startInd);
+
+		return findLongestTake(b, m, white); 
+	}
+
 
 	class Enimy
 	{
@@ -326,7 +506,11 @@ public:
 		while(canGoDirection(dir, ind, white))
 		{
 			int offs = offset(dir, white);
-			std::cout << nest << "check from " << ind << ", dir: " << dir << " to " << ind + offs << std::endl;
+			std::cout << nest << "check from " 
+				<< ind << ", dir: " 
+				<< dir << " to " 
+				<< ind + offs << std::endl;
+
 			enimy.toString();
 
 			if (b.whoIsThere(ind + offs) == (white ? Black : White) && !enimy.hasTaken(ind + offs))
