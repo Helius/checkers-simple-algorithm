@@ -1,9 +1,9 @@
 #pragma once
 
 //TODO: for desktop only!!
-#include <iostream>
-#include <vector>
-#include <algorithm>
+//#include <iostream>
+//#include <vector>
+//#include <algorithm>
 
 
 enum Fld {
@@ -114,6 +114,65 @@ class Move2 {
 	private:
 		int from = -1;
 };
+
+#ifndef __AVR__
+#include <cstring>
+#endif
+// all checkers set on black
+// 1A is black
+// the whites start from 1a
+class Board {
+
+public:
+	static constexpr int rowSize_ = 12;
+
+	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
+	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
+	int kA[rowSize_] = {0};
+	int kB[rowSize_] = {0};
+
+	void initWithData (int * pa, int * pb, int * ka, int * kb)
+	{
+		memcpy(pA, pa, sizeof(pA));
+		memcpy(pB, pb, sizeof(pB));
+		memcpy(kA, ka, sizeof(kA));
+		memcpy(kB, kb, sizeof(kB));
+	}
+
+	Fld whoIsThere(int ind) const
+	{
+		for (int i = 0; i < 12; ++i) {
+			if (pA[i] == ind)
+			{
+				return White;
+			}
+			else if (pB[i] == ind)
+			{
+				return Black;
+			}
+		}
+		return Empty;
+	}
+
+	bool isItKing(int ind) const
+	{
+		for (int i = 0; i < 12; ++i) {
+			if ((pA[i] == ind) && kA[i])
+			{
+				return true;
+			}
+			else if ((pB[i] == ind) && kB[i])
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+private:
+};
+
+/*
 
 class Move {
 
@@ -276,63 +335,7 @@ class Moves
 		int count = 0;
 };
 
-
-#include <cstring>
-
-// all checkers set on black
-// 1A is black
-// the whites start from 1a
-class Board {
-
-public:
-	static constexpr int rowSize_ = 12;
-
-	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
-	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
-	int kA[rowSize_] = {0};
-	int kB[rowSize_] = {0};
-
-	void initWithData (int * pa, int * pb, int * ka, int * kb)
-	{
-		memcpy(pA, pa, sizeof(pA));
-		memcpy(pB, pb, sizeof(pB));
-		memcpy(kA, ka, sizeof(kA));
-		memcpy(kB, kb, sizeof(kB));
-	}
-
-	Fld whoIsThere(int ind) const
-	{
-		for (int i = 0; i < 12; ++i) {
-			if (pA[i] == ind)
-			{
-				return White;
-			}
-			else if (pB[i] == ind)
-			{
-				return Black;
-			}
-		}
-		return Empty;
-	}
-
-	bool isItKing(int ind) const
-	{
-		for (int i = 0; i < 12; ++i) {
-			if ((pA[i] == ind) && kA[i])
-			{
-				return true;
-			}
-			else if ((pB[i] == ind) && kB[i])
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-private:
-};
-
+*/
 
 class CheckersAI {
 
@@ -464,7 +467,7 @@ public:
 
 		return findLongestTake(b, m, white); 
 	}
-
+/*
 
 	class Enimy
 	{
@@ -713,7 +716,7 @@ public:
 		}
 		return m.size();
 	}
-
+*/
 	bool canGoDirection(int dir, int ind, bool white)
 	{
 		switch(dir)
@@ -734,7 +737,6 @@ public:
 	}
 
 	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
-
 
 };
 

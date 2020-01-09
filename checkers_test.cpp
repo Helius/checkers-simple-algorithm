@@ -275,7 +275,7 @@ TEST(testMoves, aiTest)
 	EXPECT_EQ(mvs.get(1).getStep(0), Step(3, true));
 	EXPECT_EQ(mvs.get(1).getStep(1), Step(5, false));
 }
-*/
+
 TEST(testFindNoTakesEmptyBoard, aiTest)
 {
 	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -411,7 +411,7 @@ TEST(testFindAllTakesWithouLoop, aiTest)
 	EXPECT_EQ(ms.get(1).size(), 4);
 	EXPECT_EQ(ms.get(1), m2);
 }
-
+*/
 TEST(testOffsetForPeise, aiTest)
 {
 	CheckersAI ai;
@@ -479,7 +479,7 @@ TEST(testInitBoardColors, boardTest)
 	EXPECT_EQ(b.whoIsThere(41), Black);
 	EXPECT_EQ(b.whoIsThere(63), Black);
 }
-
+/*
 TEST(testFindBaseMovesForPieceWithoutTake, aiTest)
 {
 	Board b;
@@ -566,4 +566,4 @@ TEST(testFindMovesPieceMustTakeMultiply, aiTest)
 	em.addStep(Step(54, true));
 	EXPECT_EQ(m.get(0), em);
 }
-
+*/
