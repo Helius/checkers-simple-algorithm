@@ -362,6 +362,7 @@ public:
 			case LeftBack:
 				return white ? -9 : 9;
 		}
+		return 0;
 	}
 
 	int calcNewFrom(int i)
@@ -734,6 +735,7 @@ public:
 				if(white ? ind > 63 : ind < 0) return false;
 				return white ? ind%16 != 0 : (ind+1)%16 != 0;
 		}
+		return false;
 	}
 
 	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
