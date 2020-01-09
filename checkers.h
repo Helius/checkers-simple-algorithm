@@ -1,11 +1,5 @@
 #pragma once
 
-//TODO: for desktop only!!
-//#include <iostream>
-//#include <vector>
-//#include <algorithm>
-
-
 enum Fld {
 	Empty,
 	White,
@@ -124,13 +118,6 @@ class Move2 {
 class Board {
 
 public:
-	static constexpr int rowSize_ = 12;
-
-	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
-	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
-	int kA[rowSize_] = {0};
-	int kB[rowSize_] = {0};
-
 	void initWithData (int * pa, int * pb, int * ka, int * kb)
 	{
 		memcpy(pA, pa, sizeof(pA));
@@ -170,6 +157,12 @@ public:
 	}
 
 private:
+	static constexpr int rowSize_ = 12;
+
+	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
+	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
+	int kA[rowSize_] = {0};
+	int kB[rowSize_] = {0};
 };
 
 /*
@@ -340,15 +333,14 @@ class Moves
 class CheckersAI {
 
 public:
-
+	
 	enum Direction {
 		Right = 0,
 		Left = 1,
 		RightBack = 2,
 		LeftBack = 3,
 	};
-
-
+	
 	int offset(int d, bool white)
 	{
 		switch(d)
@@ -364,6 +356,38 @@ public:
 		}
 		return 0;
 	}
+
+	Move2 findLongestTake(const Board & b, const bool white, const int startInd = -1)
+	{
+		// so we have start index and 4 direction to search
+		Move2 m(startInd);
+
+		return findLongestTake(b, m, white); 
+	}
+	
+	bool canGoDirection(int dir, int ind, bool white)
+	{
+		switch(dir)
+		{
+			case RightBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case Right:
+				if(white ? ind > 63 : ind < 0) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case LeftBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
+			case Left:
+				if(white ? ind > 63 : ind < 0) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
+		}
+		return false;
+	}
+
+	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
+
+private:
 
 	int calcNewFrom(int i)
 	{
@@ -411,7 +435,6 @@ public:
 		return Step();
 	}
 
-	
 	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const int from = -1)
 	{
 		Move2 resultMove;
@@ -461,13 +484,7 @@ public:
 		return resultMove;
 	}
 
-	Move2 findLongestTake(const Board & b, const bool white, const int startInd = -1)
-	{
-		// so we have start index and 4 direction to search
-		Move2 m(startInd);
-
-		return findLongestTake(b, m, white); 
-	}
+	
 /*
 
 	class Enimy
@@ -718,27 +735,6 @@ public:
 		return m.size();
 	}
 */
-	bool canGoDirection(int dir, int ind, bool white)
-	{
-		switch(dir)
-		{
-			case RightBack:
-				if(white ? ind < 9 : ind > 54) return false;
-				return white ? (ind+1)%16 != 0 : ind%16 != 0;
-			case Right:
-				if(white ? ind > 63 : ind < 0) return false;
-				return white ? (ind+1)%16 != 0 : ind%16 != 0;
-			case LeftBack:
-				if(white ? ind < 9 : ind > 54) return false;
-				return white ? ind%16 != 0 : (ind+1)%16 != 0;
-			case Left:
-				if(white ? ind > 63 : ind < 0) return false;
-				return white ? ind%16 != 0 : (ind+1)%16 != 0;
-		}
-		return false;
-	}
-
-	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
 
 };
 
