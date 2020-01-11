@@ -11,7 +11,7 @@ enum Fld {
 class Step {
 	public:
 		Step() = default;
-		Step(int toInd, int takeInd = -1)
+		Step(int8_t toInd, int8_t takeInd = -1)
 		: to(toInd)
 		, take(takeInd)
 	{}
@@ -33,8 +33,8 @@ class Step {
 		inline bool hasTake() {return  take != -1;}
 
 	public:
-		int to = -1;
-		int take = -1;
+		int8_t to = -1;
+		int8_t take = -1;
 };
 
 
@@ -44,7 +44,7 @@ class Move2 {
 
 		Move2() = default;
 
-		Move2(int fromInd)
+		Move2(int8_t fromInd)
 			: from(fromInd)
 		{}
 
@@ -60,7 +60,7 @@ class Move2 {
 			return true;
 		}
 
-		inline int currentInd() const {
+		inline int8_t currentInd() const {
 			if(stepCount_ == 0) {
 				return from;
 			} else {
@@ -69,11 +69,11 @@ class Move2 {
 
 		}
 
-		inline int size() const {
+		inline int8_t size() const {
 			return stepCount_;
 		}
 
-		const Step getStep(int ind) const
+		const Step getStep(int8_t ind) const
 		{
 			if(ind >= maxSteps_)
 			{
@@ -84,8 +84,8 @@ class Move2 {
 
 		bool hasTakes() const { return hasTakes_; }
 
-		bool alreadyTaken(int ind) const {
-			for(int i = 0; i < stepCount_; ++i) {
+		bool alreadyTaken(int8_t ind) const {
+			for(int8_t i = 0; i < stepCount_; ++i) {
 				if(steps_[i].take == ind) {
 					return true;
 				}
@@ -93,21 +93,45 @@ class Move2 {
 			return false;
 		} 
 
-		bool operator() (const Move2 & m) const{
-			return m.size() > 0;
+		operator bool() const {
+			return size() > 0;
 		}
 
-		int getFrom() const { return from; }
+		int8_t getFrom() const { return from; }
 
 	public:
-		static constexpr int maxSteps_ = 5;
+		static constexpr int8_t maxSteps_ = 5;
 	private:
-		int stepCount_ = 0;
+		int8_t stepCount_ = 0;
 		Step steps_[maxSteps_];
 		bool hasTakes_ = false;
 	private:
-		int from = -1;
+		int8_t from = -1;
 };
+
+class BoardEvent
+{
+	public:
+		enum Event 
+		{
+			Up,
+			Down,
+			Remove,
+			Multy,
+		};
+
+		BoardEvent() = default;
+
+		BoardEvent(uint8_t i, Event e)
+			:ind(i)
+			 , event(e)
+	{}
+		operator bool() const { return ind != 128; }
+
+		uint8_t ind = 128;
+		Event event;
+};
+
 
 #ifndef __AVR__
 #include <cstring>
@@ -126,9 +150,9 @@ public:
 		memcpy(kB, kb, sizeof(kB));
 	}
 
-	Fld whoIsThere(int ind) const
+	Fld whoIsThere(int8_t ind) const
 	{
-		for (int i = 0; i < 12; ++i) {
+		for (int8_t i = 0; i < 12; ++i) {
 			if (pA[i] == ind)
 			{
 				return White;
@@ -141,23 +165,46 @@ public:
 		return Empty;
 	}
 
-	bool isItKing(int ind) const
+	bool isItKing(int8_t ind) const
 	{
-		for (int i = 0; i < 12; ++i) {
-			if ((pA[i] == ind) && kA[i])
+		for (int8_t i = 0; i < 12; ++i) {
+			if (pA[i] == ind)
 			{
-				return true;
+				return kA[i];
 			}
-			else if ((pB[i] == ind) && kB[i])
+			if (pB[i] == ind)
 			{
-				return true;
+				return kB[i];
 			}
 		}
 		return false;
 	}
 
+	void processEvent(BoardEvent e)
+	{
+		if(e.event == BoardEvent::Down) {
+			for(int8_t i = 0; i < rowSize_; ++i) {
+				if(pA[i] == -1) {
+					pA[i] = e.ind;
+					return;
+				}
+			}
+		} else if (e.event == BoardEvent::Up) {
+			for(int8_t i = 0; i < rowSize_; ++i) {
+				if(pA[i] == e.ind) {
+					pA[i] = -1;
+					return;
+				}
+				if(pB[i] == e.ind) {
+					pB[i] = -1;
+					return;
+				}
+			}
+		}
+	}
+
 private:
-	static constexpr int rowSize_ = 12;
+	static constexpr int8_t rowSize_ = 12;
 
 	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
 	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
@@ -362,7 +409,7 @@ public:
 		// so we have start index and 4 direction to search
 		Move2 m(startInd);
 
-		return findLongestTake(b, m, white); 
+		return findLongestTake(b, m, white, b.isItKing(startInd));
 	}
 	
 	bool canGoDirection(int dir, int ind, bool white)
@@ -403,7 +450,7 @@ private:
 		return newFrom;
 	}
 
-	Step eatEnemy(const Board & b, const int dir, int ind, const bool white, const Move2 & m)
+	Step eatEnemy(const Board & b, const int dir, int ind, const bool white, const bool king, const Move2 & m)
 	{
 		while(canGoDirection(dir, ind, white))
 		{
@@ -423,7 +470,7 @@ private:
 					return Step();
 				}
 			}
-			else if ((b.whoIsThere(ind + offs) == Empty) || m.alreadyTaken(ind + offs))
+			else if (king && ((b.whoIsThere(ind + offs) == Empty) || m.alreadyTaken(ind + offs)))
 			{
 				ind += offs;
 			}
@@ -435,7 +482,7 @@ private:
 		return Step();
 	}
 
-	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const int from = -1)
+	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const bool king, const int from = -1)
 	{
 		Move2 resultMove;
 
@@ -446,7 +493,7 @@ private:
 		{
 			if(dir != from)
 			{
-				Step step = eatEnemy(b, dir, ind, white, m);
+				Step step = eatEnemy(b, dir, ind, white, king, m);
 				
 				if(step.isValid()) 
 				{
@@ -457,13 +504,13 @@ private:
 						resultMove = nextMove;
 					}
 
-					Move2 move = findLongestTake(b, nextMove, white, calcNewFrom(dir));
+					Move2 move = findLongestTake(b, nextMove, white, king, calcNewFrom(dir));
 					// update if longer
 					if(move.size() > resultMove.size()) {
 						resultMove = move;
 					}
 					// check other empty spaces after enemy we can land
-					while(canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
+					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
 						Move2 additionalMove = m;
 						step.to = step.to + offset(dir, white);
 						additionalMove.addStep(step);
@@ -471,7 +518,7 @@ private:
 						if(additionalMove.size() > resultMove.size()) {
 							resultMove = additionalMove;
 						}*/
-						Move2 additionalResult = findLongestTake(b, additionalMove, white, calcNewFrom(dir));
+						Move2 additionalResult = findLongestTake(b, additionalMove, white, king, calcNewFrom(dir));
 						if(additionalResult.size() > resultMove.size()) {
 							resultMove = additionalResult;
 						}
@@ -738,23 +785,62 @@ private:
 
 };
 
+
 class Game {
 public:
+	enum GameState {
+		WaitForBoardInit,
+		WaitTheirFirstMove,
+		TheirMove,
+		MyMove,
+		IWin,
+		TheyWin,
+	};
+
+	void startGame() {
+		b = Board();
+		state = WaitTheirFirstMove;
+	}
+
+	void applyBoardEvent(BoardEvent e)
+	{
+		b.processEvent(e);
+	}
+
+	void moveFinished() {
+		state = MyMove;
+	}
+
+	Move2 getMyMove() 
+	{
+		ai.findLongestTake(b, false, 0);
+		return Move2();
+	}
+
+	void giveUp()
+	{
+		reset();
+	}
+
+	void myMoveApplyed()
+	{
+		// check we win or lost
+		state = TheirMove;
+	}
+
 	void reset()
-	{}
-
-	bool applyTheirMove()
 	{
-		return true;
+		state = WaitForBoardInit;
 	}
 
-	bool doMyMove()
-	{
-		return true;
-	}
+
+	GameState getState() const { return state; }
+
+public:
+	GameState state = WaitForBoardInit;
 
 private:
-	bool myMove_ = false;
+	CheckersAI ai;
 	Board b;
 };
 

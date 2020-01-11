@@ -24,6 +24,67 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+TEST(boardIsItKingTEst, aiTest)
+{
+	int pA[12] = {0, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int pB[12] = {11, 27, 25, 9, -1, -1, -1, -1, -1, -1, -1};
+	int kA[12] = {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kB[12] = {0};
+
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_TRUE(b.isItKing(0));
+	EXPECT_TRUE(b.isItKing(3));
+	EXPECT_FALSE(b.isItKing(1));
+	EXPECT_FALSE(b.isItKing(11));
+}
+
+TEST(testPieceNotTake, aiTest)
+{
+	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {20, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 2);
+	EXPECT_EQ(m.size(), 0);
+}
+
+TEST(testPieceFindLongestTake, aiTest)
+{
+	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {25, 11, 9, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 2);
+	EXPECT_EQ(m.size(), 2);
+}
+
+TEST(testPieceRoundTake, aiTest)
+{
+	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pB[12] = {25, 11, 9, 27, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {0};
+	int kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findLongestTake(b, true, 2);
+	EXPECT_EQ(m.size(), 4);
+	EXPECT_EQ(m.getStep(0), Step(20, 11));
+	EXPECT_EQ(m.getStep(1), Step(34, 27));
+	EXPECT_EQ(m.getStep(2), Step(16, 25));
+	EXPECT_EQ(m.getStep(3), Step(2, 9));
+}
+
 TEST(testNewKingCircularTakes, aiTest) {
 	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
@@ -40,9 +101,9 @@ TEST(testNewKingCircularTakes, aiTest) {
 }
 
 TEST(testNewKingTakeCornerWithGap, aiTest) {
-	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {27, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int pA[12] = {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int pB[12] = {27, 52, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int kB[12] = {0};
 
 	CheckersAI ai;
@@ -57,7 +118,7 @@ TEST(testNewKingTakeCornerWithGap, aiTest) {
 TEST(testNewKingTakeCorner, aiTest) {
 	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int pB[12] = {27, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int kB[12] = {0};
 
 	CheckersAI ai;
@@ -72,7 +133,7 @@ TEST(testNewKingTakeCorner, aiTest) {
 TEST(testNewKingTakeWithGap, aiTest) {
 	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int pB[12] = {45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	int kB[12] = {0};
 
 	CheckersAI ai;
