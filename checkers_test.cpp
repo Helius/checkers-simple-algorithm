@@ -24,12 +24,77 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+TEST(testPieceMove, aiTest)
+{
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findMoves(b, ms, true, 2);
+	
+	EXPECT_EQ(ms.size(), 2);
+	EXPECT_EQ(ms.get(0).size(), 1);
+	EXPECT_EQ(ms.get(0).currentInd(), 11);
+	EXPECT_EQ(ms.get(0).getFrom(), 2);
+	EXPECT_EQ(ms.get(0).hasTakes(), false);
+	EXPECT_EQ(ms.get(0).getStep(0), Step(11));
+	
+	EXPECT_EQ(ms.get(1).size(), 1);
+	EXPECT_EQ(ms.get(1).currentInd(), 9);
+	EXPECT_EQ(ms.get(1).getFrom(), 2);
+	EXPECT_EQ(ms.get(1).hasTakes(), false);
+	EXPECT_EQ(ms.get(1).getStep(0), Step(9));
+}
+
+TEST(testPieceHasNoMove, aiTest)
+{
+	int8_t pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findMoves(b, ms, true, 0);
+	
+	EXPECT_EQ(ms.size(), 0);
+}
+
+TEST(testPieceOneMove, aiTest)
+{
+	int8_t pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findMoves(b, ms, true, 0);
+	
+	EXPECT_EQ(ms.size(), 1);
+	
+	EXPECT_EQ(ms.get(0).size(), 1);
+	EXPECT_EQ(ms.get(0).currentInd(), 9);
+	EXPECT_EQ(ms.get(0).getFrom(), 0);
+	EXPECT_EQ(ms.get(0).hasTakes(), false);
+	EXPECT_EQ(ms.get(0).getStep(0), Step(9));
+}
+
 TEST(boardIsItKingTEst, aiTest)
 {
-	int pA[12] = {0, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	int pB[12] = {11, 27, 25, 9, -1, -1, -1, -1, -1, -1, -1};
-	int kA[12] = {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t pB[12] = {11, 27, 25, 9, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
@@ -41,10 +106,10 @@ TEST(boardIsItKingTEst, aiTest)
 
 TEST(testPieceNotTake, aiTest)
 {
-	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {20, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {20, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -55,10 +120,10 @@ TEST(testPieceNotTake, aiTest)
 
 TEST(testPieceFindLongestTake, aiTest)
 {
-	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {25, 11, 9, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {25, 11, 9, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -69,10 +134,10 @@ TEST(testPieceFindLongestTake, aiTest)
 
 TEST(testPieceRoundTake, aiTest)
 {
-	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {25, 11, 9, 27, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {25, 11, 9, 27, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -86,10 +151,10 @@ TEST(testPieceRoundTake, aiTest)
 }
 
 TEST(testNewKingCircularTakes, aiTest) {
-	int pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -101,10 +166,10 @@ TEST(testNewKingCircularTakes, aiTest) {
 }
 
 TEST(testNewKingTakeCornerWithGap, aiTest) {
-	int pA[12] = {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	int pB[12] = {27, 52, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t pB[12] = {27, 52, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -116,10 +181,10 @@ TEST(testNewKingTakeCornerWithGap, aiTest) {
 }
 
 TEST(testNewKingTakeCorner, aiTest) {
-	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {27, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {27, 43, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -131,10 +196,10 @@ TEST(testNewKingTakeCorner, aiTest) {
 }
 
 TEST(testNewKingTakeWithGap, aiTest) {
-	int pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -145,10 +210,10 @@ TEST(testNewKingTakeWithGap, aiTest) {
 }
 
 TEST(testNewKingTakeTwice, aiTest) {
-	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {36, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {36, 54, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -160,10 +225,10 @@ TEST(testNewKingTakeTwice, aiTest) {
 }
 
 TEST(testNewKingTake, aiTest) {
-	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {36, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -174,10 +239,10 @@ TEST(testNewKingTake, aiTest) {
 }
 
 TEST(testNoNewKingTake, aiTest) {
-	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -188,10 +253,10 @@ TEST(testNoNewKingTake, aiTest) {
 /*
 TEST(testKingCircularTakes, aiTest)
 {
-	int pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {36, 52, 50, 34, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {36, 52, 50, 34, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -210,10 +275,10 @@ TEST(testKingCircularTakes, aiTest)
 
 TEST(testKingOneNearTake, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -228,10 +293,10 @@ TEST(testKingOneNearTake, aiTest)
 
 TEST(testKingOneFarTake, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -246,10 +311,10 @@ TEST(testKingOneFarTake, aiTest)
 
 TEST(testKingTwoDirectionTakes, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 20, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 20, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -265,10 +330,10 @@ TEST(testKingTwoDirectionTakes, aiTest)
 
 TEST(testKingTwoHopeNearTakes, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 20, 38, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 20, 38, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -285,10 +350,10 @@ TEST(testKingTwoHopeNearTakes, aiTest)
 
 TEST(testKingFindFirstEnimy, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -339,10 +404,10 @@ TEST(testMoves, aiTest)
 
 TEST(testFindNoTakesEmptyBoard, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -354,10 +419,10 @@ TEST(testFindNoTakesEmptyBoard, aiTest)
 
 TEST(testFindOneTakes, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -370,10 +435,10 @@ TEST(testFindOneTakes, aiTest)
 
 TEST(testFindTwoTakes, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {20, 0, 18, 0, 36, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {20, 0, 18, 0, 36, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -388,10 +453,10 @@ TEST(testFindTwoTakes, aiTest)
 
 TEST(testFindAllTakes, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {20, 2, 18, 0, 36, 0, 52, 50, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {20, 2, 18, 0, 36, 0, 52, 50, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -416,10 +481,10 @@ TEST(testFindAllTakes, aiTest)
 
 TEST(testFindAllTakesReturnSamePlace, aiTest)
 {
-	int pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 20, 36, 34, 18, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 20, 36, 34, 18, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -442,10 +507,10 @@ TEST(testFindAllTakesReturnSamePlace, aiTest)
 
 TEST(testFindAllTakesWithouLoop, aiTest)
 {
-	int pA[12] = {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 11, 29, 45, 43, 27, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 11, 29, 45, 43, 27, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	CheckersAI ai;
 	Board b;
@@ -574,10 +639,10 @@ TEST(testFindBaseMovesForPieceWithoutTake, aiTest)
 
 TEST(testFindBaseMovesForPieceWithTake, aiTest)
 {
-	int pA[12] = {0, 18, 25, 9, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 27, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 18, 25, 9, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 27, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
@@ -594,10 +659,10 @@ TEST(testFindBaseMovesForPieceWithTake, aiTest)
 
 TEST(testFindMovesPieceCantTakeOutsideBoard, aiTest)
 {
-	int pA[12] = {0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	Board b;
 	b.initWithData(pA, pB, kA, kB);
@@ -611,10 +676,10 @@ TEST(testFindMovesPieceCantTakeOutsideBoard, aiTest)
 
 TEST(testFindMovesPieceMustTakeMultiply, aiTest)
 {
-	int pA[12] = {0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int pB[12] = {0, 27, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int kA[12] = {0};
-	int kB[12] = {0};
+	int8_t pA[12] = {0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 27, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
 
 	Board b;
 	b.initWithData(pA, pB, kA, kB);

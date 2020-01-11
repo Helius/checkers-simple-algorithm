@@ -142,7 +142,7 @@ class BoardEvent
 class Board {
 
 public:
-	void initWithData (int * pa, int * pb, int * ka, int * kb)
+	void initWithData (int8_t * pa, int8_t * pb, int8_t * ka, int8_t * kb)
 	{
 		memcpy(pA, pa, sizeof(pA));
 		memcpy(pB, pb, sizeof(pB));
@@ -206,176 +206,37 @@ public:
 private:
 	static constexpr int8_t rowSize_ = 12;
 
-	int pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
-	int pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
-	int kA[rowSize_] = {0};
-	int kB[rowSize_] = {0};
-};
-
-/*
-
-class Move {
-
-public:
-
-	Move() = default;
-	Move(Step step) {
-		steps_[0] = step;
-		hasTakes_ = step.take;
-		stepCount_ = 1;
-	}
-
-	void toString()
-	{
-		std::cout << "******* Move [count][takes] " << stepCount_ << "| " << hasTakes_ << ": ";
-		for(int j = 0; j < stepCount_; ++j)
-		{
-			std::cout << steps_[j].to << ",";
-		}
-		std::cout << std::endl;
-	}
-
-	bool addStep(Step step)
-	{
-		if(stepCount_ == maxSteps_ - 1)
-		{
-			return false;
-		}
-		steps_[stepCount_] = step;
-		hasTakes_ |= step.hasTake();
-		stepCount_++;
-		return true;
-	}
-
-	bool addStepBack(Step step)
-	{
-		if(stepCount_ == maxSteps_ - 1)
-		{
-			return false;
-		}
-		for(int i = stepCount_; i > 0; --i)
-		{
-			steps_[i] = steps_[i-1];
-		}
-		steps_[0] = step;
-		hasTakes_ |= step.hasTake();
-		stepCount_++;
-		return true;
-	}
-
-	inline int size() const {
-		return stepCount_;
-	}
-
-	const Step getStep(int ind) const
-	{
-		if(ind >= maxSteps_)
-		{
-			return Step();
-		}
-		return steps_[ind];
-	}
-
-	bool hasTakes() const { return hasTakes_; }
-
-	bool operator() (const Move & m) const{
-		return m.size();
-	}
-
-	bool operator== (const Move & m) const
-	{
-		std::vector<Step> va;
-		std::vector<Step> vb;
-
-		if(m.size() != size()) return false;
-
-		for(int i = 0; i < stepCount_; ++i) {
-				va.push_back(steps_[i]);
-			if(m.getStep(i).isValid()) {
-				vb.push_back(m.getStep(i));
-			}
-		}
-
-		std::sort(va.begin(), va.end());
-		std::sort(vb.begin(), vb.end());
-
-		if(va.size() != vb.size())
-		{
-			return false;
-		}
-
-		for(int i = 0; i < va.size(); ++i)
-		{
-			if(!(va[i] == vb[i]))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-public:
-	static constexpr int maxSteps_ = 5;
-private:
-	// max number of take
-	int stepCount_ = 0;
-	Step steps_[maxSteps_];
-	bool hasTakes_ = false;
+	int8_t pA[rowSize_] = {0, 2, 4, 6, 9, 11, 13, 15, 16, 18, 20, 22};
+	int8_t pB[rowSize_] = {63, 61, 59, 57, 54, 52, 50, 48, 47, 45, 43, 41};
+	int8_t kA[rowSize_] = {0};
+	int8_t kB[rowSize_] = {0};
 };
 
 class Moves
 {
 	public:
 
-		Move & clone(Move & m, Step s)
-		{
-			if(count < size_) {
-				moves[count++] = m;
-				moves[count-1].addStep(s);
-				return moves[count-1];
-			}
-			return invalidMove;
-		}
-
-		Move & addNew(Step s)
+		bool append(Move2 m)
 		{
 			if(count < size_)
 			{
-				Move m(s);
 				moves[count++] = m;
-				return moves[count-1];
+				return true;
 			}
-			return invalidMove;
+			return false;
 		}
 
-		int addToLast(Step s)
-		{
-			if(count)
-			{
-				moves[count-1].addStepBack(s);
-			}
-		}
-
-		void toString() {
-			for(int i = 0; i < size(); ++i)
-			{
-				get(i).toString();
-			}
-		}
-
-		Move get(int i) const { return moves[i]; }
+		Move2 get(int i) const { return moves[i]; }
 
 		void clear() { count = 0; }
 		int size() const { return count; }
 
 	private:
 		static constexpr int size_ = 8;
-		Move moves[size_];
-		Move invalidMove = Move();
+		Move2 moves[size_];
 		int count = 0;
 };
 
-*/
 
 class CheckersAI {
 
@@ -388,7 +249,7 @@ public:
 		LeftBack = 3,
 	};
 	
-	int offset(int d, bool white)
+	int8_t offset(int8_t d, bool white)
 	{
 		switch(d)
 		{
@@ -404,15 +265,35 @@ public:
 		return 0;
 	}
 
-	Move2 findLongestTake(const Board & b, const bool white, const int startInd = -1)
+	Move2 findLongestTake(const Board & b, const bool white, const int8_t startInd = -1)
 	{
 		// so we have start index and 4 direction to search
 		Move2 m(startInd);
 
 		return findLongestTake(b, m, white, b.isItKing(startInd));
 	}
+
+	void findMoves(const Board & b, Moves & ms, bool white, uint8_t ind)
+	{
+		if(b.isItKing(ind)) {
+
+		} else {
+			for(uint8_t dir = 0; dir < 2; ++dir) {
+				if(canGoDirection(dir, ind, white)) {
+					uint8_t newOffset = ind + offset(dir, white);
+					if(b.whoIsThere(newOffset) == Empty) {
+						Move2 m(ind);
+						m.addStep(Step(newOffset));
+						if(!ms.append(m)) {
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 	
-	bool canGoDirection(int dir, int ind, bool white)
+	bool canGoDirection(int8_t dir, int8_t ind, bool white)
 	{
 		switch(dir)
 		{
@@ -432,13 +313,13 @@ public:
 		return false;
 	}
 
-	bool onKingSide(int ind, bool white) { return white ? ind > 54 : ind < 9; }
+	bool onKingSide(int8_t ind, bool white) { return white ? ind > 54 : ind < 9; }
 
 private:
 
-	int calcNewFrom(int i)
+	int8_t calcNewFrom(int8_t i)
 	{
-		int newFrom = -1;
+		int8_t newFrom = -1;
 		if(i == Right)
 			newFrom = LeftBack;
 		if(i == Left)
@@ -450,15 +331,15 @@ private:
 		return newFrom;
 	}
 
-	Step eatEnemy(const Board & b, const int dir, int ind, const bool white, const bool king, const Move2 & m)
+	Step eatEnemy(const Board & b, const int8_t dir, int8_t ind, const bool white, const bool king, const Move2 & m)
 	{
 		while(canGoDirection(dir, ind, white))
 		{
-			int offs = offset(dir, white);
+			int8_t offs = offset(dir, white);
 			
 			if (b.whoIsThere(ind + offs) == (white ? Black : White) && !m.alreadyTaken(ind + offs))
 			{
-				int indAfterEnemy = ind + offs + offset(dir, white);
+				int8_t indAfterEnemy = ind + offs + offset(dir, white);
 
 				if(canGoDirection(dir, ind+offs, white) && (
 						(b.whoIsThere(indAfterEnemy) == Empty) 
@@ -482,14 +363,14 @@ private:
 		return Step();
 	}
 
-	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const bool king, const int from = -1)
+	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const bool king, const int8_t from = -1)
 	{
 		Move2 resultMove;
 
-		int ind = m.currentInd();
+		int8_t ind = m.currentInd();
 
 		// check all directions
-		for(int dir = 0; dir < 4; ++dir)
+		for(int8_t dir = 0; dir < 4; ++dir)
 		{
 			if(dir != from)
 			{
@@ -530,259 +411,6 @@ private:
 		// finally return longest if it exist or empty move
 		return resultMove;
 	}
-
-	
-/*
-
-	class Enimy
-	{
-		public:
-			Enimy() = delete;
-			Enimy(int original)
-				: orig(original)
-			{}
-			void add(int taken) { e[ind++] = taken; }
-			int lastTaken() { return e[ind-1]; }
-			bool hasTaken(int taken)
-			{
-				for(int i = 0; i < Move::maxSteps_; ++i)
-				{
-					if(e[i] == taken) return true;
-				}
-				return false;
-			}
-			bool isOriginal(int ind) {return orig == ind; }
-			void toString()
-			{
-				std::cout << "Enimy: ";
-				for(int i = 0; i < Move::maxSteps_; ++i)
-				{
-					std::cout << e[i] << ", ";
-				}
-				std::cout << std::endl;
-			}
-		public:
-			int orig = -1;
-		private:
-			int ind = 0;
-			int e[Move::maxSteps_] = {-1};
-	};
-
-	// walk forward until find an animy and an empty place after it, return ind of this place
-	int takeFirstEnimy(const Board & b, int dir, int ind, bool white, Enimy & enimy, std::string nest = std::string())
-	{
-		while(canGoDirection(dir, ind, white))
-		{
-			int offs = offset(dir, white);
-			std::cout << nest << "check from " 
-				<< ind << ", dir: " 
-				<< dir << " to " 
-				<< ind + offs << std::endl;
-
-			enimy.toString();
-
-			if (b.whoIsThere(ind + offs) == (white ? Black : White) && !enimy.hasTaken(ind + offs))
-			{
-				int indAfterEnimy = ind + offs + offset(dir, white);
-
-				std::cout << nest << "detected! dest " << indAfterEnimy << ", empty? " << ((b.whoIsThere(indAfterEnimy) == Empty || enimy.isOriginal(indAfterEnimy)) ? "yes" : "no") << std::endl;
-
-				if(canGoDirection(dir, ind+offs, white) && ((b.whoIsThere(indAfterEnimy) == Empty) || enimy.isOriginal(indAfterEnimy)) && !enimy.hasTaken(ind+offs)) {
-
-					enimy.add(ind + offs);
-					return indAfterEnimy;
-				}
-				else
-				{
-					return -1; // can't walk further
-				}
-			}
-			ind += offs;
-		}
-		return -1;
-	}
-
-	std::string prefix(int nest) {
-		std::string result;
-		for(int i = 0; i < nest; ++i) {
-			result += "\t";
-		}
-		return result;
-	}
-
-	void findAllKingTakes(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1, int nest = 0)
-	{
-		nest++;
-
-		bool takesFound = false;
-		std::cout << prefix(nest) << "=========== start from " << ind << ", dir" << from << std::endl;
-
-		for(int i = 0; i < 4; ++i)
-		{
-			int newInd = takeFirstEnimy(b, i, ind, white, enimy, prefix(nest));
-			std::cout <<  prefix(nest) <<"and we now at " << newInd << std::endl;
-			if(newInd != -1)
-			{
-				takesFound |= 1;
-
-				// go dipper
-				int newFrom = -1;
-				if(i == Right)
-					newFrom = LeftBack;
-				if(i == Left)
-					newFrom = RightBack;
-				if(i == RightBack)
-					newFrom = Left;
-				if(i == LeftBack)
-					newFrom = Right;
-
-				findAllKingTakes(b, newInd, white, m, enimy, newFrom, nest);
-				if(from != -1) {
-					m.addToLast(Step(ind, true));
-				}
-			}
-		}
-		if(!takesFound && (from != -1))
-		{
-			std::cout << prefix(nest) << "reached end, add new for " << ind << std::endl;
-			m.addNew(Step(ind, true));
-		}
-	}
-
-
-	//TODO: there is a bug or a feature: "fuck we are still here!"
-	// we can't detect all takes in loop when check clockwise direction
-	// because we've checked already ccw direction and detect it correctly
-	// Thinking how to remove this branch of unnecessary work
-	//
-	// return ind after taking peice at ind with dir or -1
-	int canTake(const Board & b, int dir, int ind, bool white, Enimy & enimy, int from = -1)
-	{
-		if((dir != from) && canGoDirection(dir, ind, white))
-		{
-			int offs = offset(dir, white);
-			if(!enimy.hasTaken(offs+ind)
-					&& (b.whoIsThere(ind + offs) == (white ? Black : White))
-					&& canGoDirection(dir, ind + offs, white))
-			{
-				int newInd = ind + offs + offset(dir, white);
-				if((b.whoIsThere(newInd) == Empty) || newInd == enimy.orig)
-				{
-					enimy.add(ind+offs);
-					return newInd;
-				}
-			}
-		}
-		return -1;
-	}
-
-	void findAllTake(const Board & b, int ind, bool white, Moves & m)
-	{
-		Enimy enimy(ind);
-		findAllTake(b, ind, white, m, enimy, -1);
-	}
-
-	// recurcive find less than size moves with takes for piece
-	void findAllTake(const Board & b, int ind, bool white, Moves & m, Enimy enimy, int from = -1)
-	{
-		bool takesFound = false;
-
-		for(int i = 0; i < 4; ++i)
-		{
-			int newInd = canTake(b, i, ind, white, enimy, from);
-			if(newInd != -1)
-			{
-				//std::cout << "we " << ind << " check " << newInd << std::endl;
-				takesFound |= true;
-
-				// go dipper
-				int newFrom = -1;
-				if(i == Right)
-					newFrom = LeftBack;
-				if(i == Left)
-					newFrom = RightBack;
-				if(i == RightBack)
-					newFrom = Left;
-				if(i == LeftBack)
-					newFrom = Right;
-
-				findAllTake(b, newInd, white, m, enimy, newFrom);
-				if(from != -1) {
-					m.addToLast(Step(ind, true));
-				}
-			}
-		}
-		if(!takesFound && (from != -1))
-		{
-			//std::cout << "reached end, add new for " << ind << std::endl;
-			m.addNew(Step(ind, true));
-		}
-	}
-
-
-	// find only one move with takes, according to the rules, we have to take, but can choose
-	// what to take, so we just take something
-	bool findAnyTake(const Board & b, int ind, bool white, Move & m, int from = -1)
-	{
-		for(int i = 0; i < 4; ++i)
-		{
-			if(canGoDirection(i, ind, white) && (i != from))
-			{
-				int offs = offset(i, white);
-				if((b.whoIsThere(ind + offs) == (white ? Black : White)) && canGoDirection(i, ind + offs, white))
-				{
-					int newInd = ind+offs + offset(i, white);
-					if((b.whoIsThere(newInd) == Empty))
-					{
-						// we can take
-						if(m.addStep(Step(newInd, true)))
-						{
-							int newFrom = -1;
-							if(i == Right)
-								newFrom = LeftBack;
-							if(i == Left)
-								newFrom = RightBack;
-							if(i == RightBack)
-								newFrom = Left;
-							if(i == LeftBack)
-								newFrom = Right;
-							findAnyTake(b, newInd, white, m, newFrom);
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
-	}
-
-	int findMoves(const Board & b, int ind, bool white, Moves & m)
-	{
-		int count = 0;
-		m.clear();
-
-		// first we have to check can we take?
-		findAllTake(b, ind, white, m);
-		if(int size = m.size())
-		{
-			return size;
-		}
-
-		for(int i = 0; i < 2; ++i)
-		{
-			int newInd = offset(i, white) + ind;
-			if(canGoDirection(i, ind, white))
-			{
-				if(b.whoIsThere(newInd) == Empty)
-				{
-					m.addNew(Step(newInd, false));
-				}
-			}
-		}
-		return m.size();
-	}
-*/
-
 };
 
 
