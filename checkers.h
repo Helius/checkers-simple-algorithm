@@ -84,6 +84,14 @@ class Move2 {
 			return steps_[ind];
 		}
 
+		Step front() const {
+			if(size()) {
+				return steps_[stepCount_-1];
+			} else {
+				return Step();
+			}
+		}
+
 		bool hasTakes() const { return hasTakes_; }
 
 		bool alreadyTaken(int8_t ind) const {
@@ -144,6 +152,24 @@ class BoardEvent
 class Board {
 
 public:
+
+#ifdef __AVR__
+	void printLine(int8_t line) {
+		msg << (line%2 ? " " : "");
+		for(uint8_t i = 0; i < 4; ++i) {
+			msg << whoIsThere(line*8 + i*2 + (line%2 ? 1 : 0));
+		}
+	}
+
+	void print() {
+		for(int8_t i = 0; i < 8; ++i) {
+			printLine(7-i);
+			msg << m::endl;
+		}
+		msg << m::endl;
+	}
+#endif
+	
 	void initWithData (int8_t * pa, int8_t * pb, int8_t * ka, int8_t * kb)
 	{
 		memcpy(pA, pa, sizeof(pA));
@@ -152,11 +178,36 @@ public:
 		memcpy(kB, kb, sizeof(kB));
 	}
 
-	bool isValid(uint8_t ind) const {
-		return ind < 64;
+	void move(int8_t from, int8_t to) {
+		for(uint8_t i = 0; i < 12; ++i) {
+			if(pA[i] == from) {
+				pA[i] = to;
+				return;
+			}
+			if(pB[i] == from) {
+				pB[i] = to;
+				return;
+			}
+		}
 	}
 
-	uint8_t getPiece(const uint8_t ind, const bool white) const {
+	Board clone(Move2 m) {
+		Board b = *this;
+		b.move(m.getFrom(), m.front().to);
+		for(uint8_t i = 0; i < m.size(); ++i) {
+			Step s = m.getStep(i);
+			if(s.take != -1) {
+				b.move(s.take, -1);
+			}
+		}
+		return b;
+	}
+
+	bool isValid(int8_t ind) const {
+		return ind >=0 && ind < 64;
+	}
+
+	int8_t getPiece(const uint8_t ind, const bool white) const {
 		return white ? pA[ind] : pB[ind];
 	}
 
@@ -319,7 +370,7 @@ public:
 	{
 		// first find all takes for all pieces
 		for(int i = 0; i < 12; ++i) {
-			uint8_t ind = b.getPiece(i, white);
+			int8_t ind = b.getPiece(i, white);
 			if(!b.isValid(ind)) {
 				continue;
 			}
@@ -331,7 +382,7 @@ public:
 		}
 		if(!ms.size()) {
 			for(int i = 0; i < 12; ++i) {
-				uint8_t ind = b.getPiece(i, white);
+				int8_t ind = b.getPiece(i, white);
 				if(!b.isValid(ind)) {
 					continue;
 				}
@@ -347,6 +398,10 @@ public:
 		msg << "ram usage:" << ru << m::endl;
 		if(ru > 90)
 		{
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
 			return false;
 		}
 #endif
@@ -482,18 +537,35 @@ public:
 
 	void startGame() {
 		b = Board();
+		b.print();
 		state = WaitTheirFirstMove;
+		/*
 		int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		int8_t pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
 		int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		int8_t kB[12] = {0};
 		b.initWithData(pA, pB, kA, kB);
+		*/
 #ifdef __AVR__
 		msg << "start searching..." << m::endl;
 #endif
-		Move2 m = ai.findLongestTake(b, true, 2);
+		Moves ms;
+		ai.findTakesAndMoves(b, ms, true);
+		for(int8_t i = 0; i < ms.size(); ++i) {
+			Board newB = b.clone(ms.get(i));
+			newB.print();
+			Moves newMs;
+			ai.findTakesAndMoves(newB, newMs, false);
+			for(int8_t i = 0; i < newMs.size(); ++i) {
+				Board bb = newB.clone(newMs.get(i));
+				bb.print();
+			}
 #ifdef __AVR__
-		msg << "done with moves:" << m.size() << m::endl;
+			msg << "done with moves:" << ms.size() << m::endl;
+#endif
+		}
+#ifdef __AVR__
+		msg << "done with moves:" << ms.size() << m::endl;
 #endif
 	}
 
