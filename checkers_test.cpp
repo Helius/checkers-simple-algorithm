@@ -24,6 +24,71 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+TEST(testFindAllMove, aiTest)
+{
+	int8_t pA[12] = {0, 2, 29, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findTakesAndMoves(b, ms, true);
+	EXPECT_EQ(ms.size(), 5);
+	/*
+	EXPECT_EQ(ms.get(0).getStep(0).to, 18);
+	EXPECT_EQ(ms.get(0).getStep(0).take, 9);
+	EXPECT_EQ(ms.get(0).getStep(1).to, 4);
+	EXPECT_EQ(ms.get(0).getStep(1).take, 11);
+	
+	EXPECT_EQ(ms.get(1).getStep(0).to, 20);
+	EXPECT_EQ(ms.get(1).getStep(0).take, 11);
+	*/
+}
+
+TEST(testFindAllTakes, aiTest)
+{
+	int8_t pA[12] = {0, 2, 29, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {9, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findTakesAndMoves(b, ms, true);
+	EXPECT_EQ(ms.size(), 2);
+	EXPECT_EQ(ms.get(0).getStep(0).to, 18);
+	EXPECT_EQ(ms.get(0).getStep(0).take, 9);
+	EXPECT_EQ(ms.get(0).getStep(1).to, 4);
+	EXPECT_EQ(ms.get(0).getStep(1).take, 11);
+	
+	EXPECT_EQ(ms.get(1).getStep(0).to, 20);
+	EXPECT_EQ(ms.get(1).getStep(0).take, 11);
+}
+
+TEST(testKingRestrictedMove, aiTest)
+{
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {16, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findMoves(b, ms, true, 2);
+	EXPECT_EQ(ms.size(), 2);
+	
+	EXPECT_EQ(ms.get(0).getStep(0), Step(11));
+	EXPECT_EQ(ms.get(1).getStep(0), Step(9));
+}
+
+
 TEST(testKingMove, aiTest)
 {
 	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -628,6 +693,7 @@ TEST(testInitBoardColors, boardTest)
 	EXPECT_EQ(b.whoIsThere(41), Black);
 	EXPECT_EQ(b.whoIsThere(63), Black);
 }
+
 /*
 TEST(testFindBaseMovesForPieceWithoutTake, aiTest)
 {

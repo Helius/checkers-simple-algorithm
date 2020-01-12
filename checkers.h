@@ -152,6 +152,14 @@ public:
 		memcpy(kB, kb, sizeof(kB));
 	}
 
+	bool isValid(uint8_t ind) const {
+		return ind < 64;
+	}
+
+	uint8_t getPiece(const uint8_t ind, const bool white) const {
+		return white ? pA[ind] : pB[ind];
+	}
+
 	Fld whoIsThere(int8_t ind) const
 	{
 		for (int8_t i = 0; i < 12; ++i) {
@@ -282,10 +290,12 @@ public:
 			for(uint8_t dir = 0; dir < 4; ++dir) {
 				ind = originalInd;
 				while(canGoDirection(dir, ind, white) 
-					&& (b.whoIsThere(ind + offset(dir, white) == Empty))) {
+					&& (b.whoIsThere(ind + offset(dir, white)) == Empty)) {
 					Move2 m(originalInd);
 					m.addStep(ind + offset(dir, white));
-					ms.append(m);
+					if(!ms.append(m)) {
+						break;
+					}
 					ind += offset(dir, white);
 				}
 			}
@@ -301,6 +311,31 @@ public:
 						}
 					}
 				}
+			}
+		}
+	}
+
+	void findTakesAndMoves(const Board & b, Moves & ms, bool white) 
+	{
+		// first find all takes for all pieces
+		for(int i = 0; i < 12; ++i) {
+			uint8_t ind = b.getPiece(i, white);
+			if(!b.isValid(ind)) {
+				continue;
+			}
+			if(Move2 m = findLongestTake(b, white, ind)) {
+				if(!ms.append(m)) {
+					return;
+				}
+			}
+		}
+		if(!ms.size()) {
+			for(int i = 0; i < 12; ++i) {
+				uint8_t ind = b.getPiece(i, white);
+				if(!b.isValid(ind)) {
+					continue;
+				}
+				findMoves(b, ms, white, ind);
 			}
 		}
 	}
