@@ -24,6 +24,29 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+TEST(testKingMove, aiTest)
+{
+	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findMoves(b, ms, true, 2);
+	EXPECT_EQ(ms.size(), 7);
+	
+	EXPECT_EQ(ms.get(0).getStep(0), Step(11));
+	EXPECT_EQ(ms.get(1).getStep(0), Step(20));
+	EXPECT_EQ(ms.get(2).getStep(0), Step(29));
+	EXPECT_EQ(ms.get(3).getStep(0), Step(38));
+	EXPECT_EQ(ms.get(4).getStep(0), Step(47));
+	EXPECT_EQ(ms.get(5).getStep(0), Step(9));
+	EXPECT_EQ(ms.get(6).getStep(0), Step(16));
+}
+
 TEST(testPieceMove, aiTest)
 {
 	int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

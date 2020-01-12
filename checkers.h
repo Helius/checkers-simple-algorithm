@@ -11,9 +11,10 @@ enum Fld {
 class Step {
 	public:
 		Step() = default;
-		Step(int8_t toInd, int8_t takeInd = -1)
+		Step(int8_t toInd, int8_t takeInd = -1 /*,bool becameKing = false*/)
 		: to(toInd)
 		, take(takeInd)
+		//, king(becameKing)
 	{}
 	public:
 		inline bool isValid() const
@@ -35,6 +36,7 @@ class Step {
 	public:
 		int8_t to = -1;
 		int8_t take = -1;
+		//bool king = false;
 };
 
 
@@ -276,7 +278,17 @@ public:
 	void findMoves(const Board & b, Moves & ms, bool white, uint8_t ind)
 	{
 		if(b.isItKing(ind)) {
-
+			uint8_t originalInd = ind;
+			for(uint8_t dir = 0; dir < 4; ++dir) {
+				ind = originalInd;
+				while(canGoDirection(dir, ind, white) 
+					&& (b.whoIsThere(ind + offset(dir, white) == Empty))) {
+					Move2 m(originalInd);
+					m.addStep(ind + offset(dir, white));
+					ms.append(m);
+					ind += offset(dir, white);
+				}
+			}
 		} else {
 			for(uint8_t dir = 0; dir < 2; ++dir) {
 				if(canGoDirection(dir, ind, white)) {
@@ -295,6 +307,14 @@ public:
 	
 	bool canGoDirection(int8_t dir, int8_t ind, bool white)
 	{
+#ifdef __AVR__
+		uint8_t ru = ramUsage();
+		msg << "ram usage:" << ru << m::endl;
+		if(ru > 90)
+		{
+			return false;
+		}
+#endif
 		switch(dir)
 		{
 			case RightBack:
@@ -428,6 +448,18 @@ public:
 	void startGame() {
 		b = Board();
 		state = WaitTheirFirstMove;
+		int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int8_t pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
+		int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int8_t kB[12] = {0};
+		b.initWithData(pA, pB, kA, kB);
+#ifdef __AVR__
+		msg << "start searching..." << m::endl;
+#endif
+		Move2 m = ai.findLongestTake(b, true, 2);
+#ifdef __AVR__
+		msg << "done with moves:" << m.size() << m::endl;
+#endif
 	}
 
 	void applyBoardEvent(BoardEvent e)
