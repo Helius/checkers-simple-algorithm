@@ -104,10 +104,16 @@ void printBoard(const Board & b)
 
 int main()
 {
-	std::string in;
-	
 	Board b;
 	
+	int8_t pA[12] = {2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {9, 13, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	
+	b.initWithData(pA, pB, kA, kB);
 	printBoard(b);
 
 	std::cout << "Your turn: ";

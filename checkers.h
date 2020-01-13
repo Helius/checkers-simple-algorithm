@@ -8,6 +8,7 @@ enum Fld {
 	BlackKing
 };
 
+
 class Step {
 	public:
 		Step() = default;
@@ -153,22 +154,51 @@ class Board {
 
 public:
 
-#ifdef __AVR__
 	void printLine(int8_t line) {
+#ifdef __AVR__
 		msg << (line%2 ? " " : "");
 		for(uint8_t i = 0; i < 4; ++i) {
 			msg << whoIsThere(line*8 + i*2 + (line%2 ? 1 : 0));
 		}
+#else
+		std::cout << (const char*)(line%2 ? " " : "");
+		for(uint8_t i = 0; i < 4; ++i) {
+			std::cout << (int)(whoIsThere(line*8 + i*2 + (line%2 ? 1 : 0))) << " ";
+		}
+#endif
 	}
 
 	void print() {
+#ifdef __AVR__
+		msg << "  " << value(true) << m::endl;
 		for(int8_t i = 0; i < 8; ++i) {
 			printLine(7-i);
 			msg << m::endl;
 		}
 		msg << m::endl;
-	}
+#else
+		std::cout << "  " << (int)value(true) << std::endl;
+		for(int8_t i = 0; i < 8; ++i) {
+			printLine(7-i);
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+
 #endif
+	}
+
+	int8_t value(bool white) {
+		int8_t res = 0;
+		for(int i = 0; i < 12; ++i) {
+			if(pA[i] != -1) {
+				res = res + (white ? 1 : -1) * ((kA[i] ? 3 : 1));
+			}
+			if(pB[i] != -1) {
+				res = res + (white ? -1 : 1) * ((kB[i] ? 3 : 1));
+			}
+		}
+		return res;
+	}
 	
 	void initWithData (int8_t * pa, int8_t * pb, int8_t * ka, int8_t * kb)
 	{
@@ -191,7 +221,7 @@ public:
 		}
 	}
 
-	Board clone(Move2 m) {
+	Board clone(Move2 m) const{
 		Board b = *this;
 		b.move(m.getFrom(), m.front().to);
 		for(uint8_t i = 0; i < m.size(); ++i) {
@@ -309,6 +339,40 @@ public:
 		RightBack = 2,
 		LeftBack = 3,
 	};
+
+	bool onKingSide(int8_t ind, bool white) { return white ? ind > 54 : ind < 9; }
+	
+	bool canGoDirection(int8_t dir, int8_t ind, bool white)
+	{
+#ifdef __AVR__
+		uint8_t ru = ramUsage();
+		msg << "ram usage:" << ru << m::endl;
+		if(ru > 90)
+		{
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			return false;
+		}
+#endif
+		switch(dir)
+		{
+			case RightBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case Right:
+				if(white ? ind > 54 : ind < 9) return false;
+				return white ? (ind+1)%16 != 0 : ind%16 != 0;
+			case LeftBack:
+				if(white ? ind < 9 : ind > 54) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
+			case Left:
+				if(white ? ind > 54 : ind < 9) return false;
+				return white ? ind%16 != 0 : (ind+1)%16 != 0;
+		}
+		return false;
+	}
 	
 	int8_t offset(int8_t d, bool white)
 	{
@@ -324,6 +388,45 @@ public:
 				return white ? -9 : 9;
 		}
 		return 0;
+	}
+
+	Move2 findBestMove(const Board & b, bool white) {
+#ifdef __AVR__
+		msg << "Searching best move..." << m::endl;
+#endif
+		Moves ms;
+		findTakesAndMoves(b, ms, white);
+		int8_t max = -100;
+		uint8_t moveInd = 0;
+
+		for(int8_t i = 0; i < ms.size(); ++i) {
+			
+			Board newB = b.clone(ms.get(i));
+			newB.print();
+			Moves newMs;
+			findTakesAndMoves(newB, newMs, !white);
+			int8_t min = 100;
+			for(int8_t j = 0; j < newMs.size(); ++j) {
+				Board bb = newB.clone(newMs.get(j));
+				bb.print();
+				if(bb.value(white) < min) {
+					min = bb.value(white);
+				}
+			}
+			std::cout << "min:"<< (int)min << ", max:" << (int)max << std::endl;
+			if(min > max) {
+				max = min;
+				moveInd = i;
+			}
+
+#ifdef __AVR__
+			msg << "done with moves:" << ms.size() << m::endl;
+#endif
+		}
+		return ms.get(moveInd);
+#ifdef __AVR__
+		msg << "done with moves:" << ms.size() << m::endl;
+#endif
 	}
 
 	Move2 findLongestTake(const Board & b, const bool white, const int8_t startInd = -1)
@@ -390,40 +493,6 @@ public:
 			}
 		}
 	}
-	
-	bool canGoDirection(int8_t dir, int8_t ind, bool white)
-	{
-#ifdef __AVR__
-		uint8_t ru = ramUsage();
-		msg << "ram usage:" << ru << m::endl;
-		if(ru > 90)
-		{
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			return false;
-		}
-#endif
-		switch(dir)
-		{
-			case RightBack:
-				if(white ? ind < 9 : ind > 54) return false;
-				return white ? (ind+1)%16 != 0 : ind%16 != 0;
-			case Right:
-				if(white ? ind > 63 : ind < 0) return false;
-				return white ? (ind+1)%16 != 0 : ind%16 != 0;
-			case LeftBack:
-				if(white ? ind < 9 : ind > 54) return false;
-				return white ? ind%16 != 0 : (ind+1)%16 != 0;
-			case Left:
-				if(white ? ind > 63 : ind < 0) return false;
-				return white ? ind%16 != 0 : (ind+1)%16 != 0;
-		}
-		return false;
-	}
-
-	bool onKingSide(int8_t ind, bool white) { return white ? ind > 54 : ind < 9; }
 
 private:
 
@@ -546,27 +615,6 @@ public:
 		int8_t kB[12] = {0};
 		b.initWithData(pA, pB, kA, kB);
 		*/
-#ifdef __AVR__
-		msg << "start searching..." << m::endl;
-#endif
-		Moves ms;
-		ai.findTakesAndMoves(b, ms, true);
-		for(int8_t i = 0; i < ms.size(); ++i) {
-			Board newB = b.clone(ms.get(i));
-			newB.print();
-			Moves newMs;
-			ai.findTakesAndMoves(newB, newMs, false);
-			for(int8_t i = 0; i < newMs.size(); ++i) {
-				Board bb = newB.clone(newMs.get(i));
-				bb.print();
-			}
-#ifdef __AVR__
-			msg << "done with moves:" << ms.size() << m::endl;
-#endif
-		}
-#ifdef __AVR__
-		msg << "done with moves:" << ms.size() << m::endl;
-#endif
 	}
 
 	void applyBoardEvent(BoardEvent e)
@@ -580,8 +628,8 @@ public:
 
 	Move2 getMyMove() 
 	{
-		ai.findLongestTake(b, false, 0);
-		return Move2();
+		Move2 m = ai.findBestMove(b, false);
+		return m;
 	}
 
 	void giveUp()

@@ -23,6 +23,56 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
   ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
 	1   2   3   4   5   6   7   8
 */
+// this test will fail after king fix
+TEST(testFindBestTake, aiTest)
+{
+	int8_t pA[12] = {2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {9, 13, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findBestMove(b, true);
+	EXPECT_TRUE(m);
+	EXPECT_EQ(m.size(), 2);
+	EXPECT_EQ(m.getStep(0), Step(20,13));
+	EXPECT_EQ(m.getStep(1), Step(34,27));
+}
+
+
+TEST(testFindBestMoveAvoidTakeUs, aiTest)
+{
+	int8_t pA[12] = {0, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {18, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findBestMove(b, true);
+	EXPECT_TRUE(m);
+	EXPECT_EQ(m.size(), 1);
+	EXPECT_EQ(m.getStep(0), Step(13));
+}
+
+TEST(testFindBestMoveBecauseOneTake, aiTest)
+{
+	int8_t pA[12] = {11, 32, 43, 54, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {41, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findBestMove(b, true);
+	EXPECT_TRUE(m);
+	EXPECT_EQ(m.size(), 1);
+	EXPECT_EQ(m.getStep(0), Step(50, 41));
+}
 
 TEST(testFindAllMove, aiTest)
 {
@@ -338,294 +388,7 @@ TEST(testNoNewKingTake, aiTest) {
 	Move2 m = ai.findLongestTake(b, true, 27);
 	EXPECT_EQ(m.size(), 0);
 }
-/*
-TEST(testKingCircularTakes, aiTest)
-{
-	int8_t pA[12] = {0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {36, 52, 50, 34, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
 
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(27);
-	b.initWithData(pA, pB, kA, kB);
-	Moves m;
-	ai.findAllKingTakes(b, 27, true, m, e);
-	m.toString();
-	EXPECT_EQ(m.size(), 2);
-	m.toString();
-	EXPECT_EQ(m.get(0).getStep(0), Step(45,true));
-	EXPECT_EQ(m.get(0).getStep(1), Step(59,true));
-	EXPECT_EQ(m.get(0).getStep(1), Step(41,true));
-	EXPECT_EQ(m.get(0).getStep(1), Step(27,true));
-}
-
-TEST(testKingOneNearTake, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(11);
-	b.initWithData(pA, pB, kA, kB);
-	Moves m;
-	ai.findAllKingTakes(b, 11, true, m, e);
-	m.toString();
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m.get(0), Move(Step(29, true)));
-}
-
-TEST(testKingOneFarTake, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(11);
-	b.initWithData(pA, pB, kA, kB);
-	Moves m;
-	ai.findAllKingTakes(b, 11, true, m, e);
-	m.toString();
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m.get(0), Move(Step(38, true)));
-}
-
-TEST(testKingTwoDirectionTakes, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 20, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(11);
-	b.initWithData(pA, pB, kA, kB);
-	Moves m;
-	ai.findAllKingTakes(b, 11, true, m, e);
-	m.toString();
-	EXPECT_EQ(m.size(), 2);
-	EXPECT_EQ(m.get(0), Move(Step(29, true)));
-	EXPECT_EQ(m.get(1), Move(Step(25, true)));
-}
-
-TEST(testKingTwoHopeNearTakes, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 20, 38, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(11);
-	b.initWithData(pA, pB, kA, kB);
-	Moves m;
-	ai.findAllKingTakes(b, 11, true, m, e);
-	m.toString();
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m.get(0).getStep(0), Step(29,true));
-	EXPECT_EQ(m.get(0).getStep(1), Step(47,true));
-}
-
-
-TEST(testKingFindFirstEnimy, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	CheckersAI::Enimy e(11);
-	b.initWithData(pA, pB, kA, kB);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Right, 11, true, e),29);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Left, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::RightBack, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::LeftBack, 11, true, e),-1);
-
-
-	pB[1] = 29;
-	b.initWithData(pA, pB, kA, kB);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Right, 11, true, e),38);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Left, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::RightBack, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::LeftBack, 11, true, e),-1);
-
-	pB[1] = 25;
-	b.initWithData(pA, pB, kA, kB);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Right, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Left, 11, true, e),32);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::RightBack, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::LeftBack, 11, true, e),-1);
-
-	pB[1] = 20;
-	pB[2] = 29;
-	b.initWithData(pA, pB, kA, kB);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Right, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::Left, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::RightBack, 11, true, e),-1);
-	EXPECT_EQ(ai.takeFirstEnimy(b, CheckersAI::LeftBack, 11, true, e),-1);
-
-}
-
-TEST(testMoves, aiTest)
-{
-	Moves mvs;
-	Move & m = mvs.addNew(Step(3,true));
-	Move & m1 = mvs.clone(m, Step(5, false));
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m1.size(), 2);
-	EXPECT_EQ(mvs.size(), 2);
-	EXPECT_EQ(mvs.get(0).getStep(0), Step(3, true));
-	EXPECT_EQ(mvs.get(1).getStep(0), Step(3, true));
-	EXPECT_EQ(mvs.get(1).getStep(1), Step(5, false));
-}
-
-TEST(testFindNoTakesEmptyBoard, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Move m;
-	ai.findAnyTake(b, 11, true, m);
-	EXPECT_EQ(m, Move());
-}
-
-TEST(testFindOneTakes, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Move m;
-	ai.findAnyTake(b, 11, true, m);
-	//m.toString();
-	EXPECT_EQ(m, Move(Step(29, true)));
-}
-
-TEST(testFindTwoTakes, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {20, 0, 18, 0, 36, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Move m;
-	ai.findAnyTake(b, 11, true, m);
-	//m.toString();
-	Move tm(Step(29, true));
-	tm.addStep(Step(43, true));
-	EXPECT_EQ(m, tm);
-}
-
-TEST(testFindAllTakes, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {20, 2, 18, 0, 36, 0, 52, 50, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Moves ms;
-	ai.findAllTake(b, 11, true, ms);
-
-	EXPECT_EQ(ms.size(), 3);
-
-	Move m1(Step(43, true));
-	m1.addStep(Step(61, true));
-	EXPECT_EQ(ms.get(0), m1);
-
-	Move m2(Step(29, true));
-	m2.addStep(Step(43, true));
-	m2.addStep(Step(57, true));
-	EXPECT_EQ(ms.get(1).size(), 3);
-	EXPECT_EQ(ms.get(1), m2);
-
-	EXPECT_EQ(ms.get(2), Move(Step(25,true)));
-}
-
-TEST(testFindAllTakesReturnSamePlace, aiTest)
-{
-	int8_t pA[12] = {0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 20, 36, 34, 18, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Moves ms;
-	ai.findAllTake(b, 11, true, ms);
-	//ms.toString();
-
-	EXPECT_EQ(ms.size(), 2);
-
-	Move m1(Step(29, true));
-	m1.addStep(Step(43, true));
-	m1.addStep(Step(25, true));
-	m1.addStep(Step(11, true));
-
-	EXPECT_EQ(ms.get(0), m1);
-	EXPECT_EQ(ms.get(0).size(), 4);
-	//EXPECT_EQ(ms.get(1).size(), 4);
-}
-
-TEST(testFindAllTakesWithouLoop, aiTest)
-{
-	int8_t pA[12] = {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 11, 29, 45, 43, 27, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	CheckersAI ai;
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	Moves ms;
-	ai.findAllTake(b, 2, true, ms);
-	//ms.toString();
-
-	EXPECT_EQ(ms.size(), 2);
-
-	Move m1(Step(20, true));
-	m1.addStep(Step(38, true));
-	m1.addStep(Step(52, true));
-	m1.addStep(Step(34, true));
-
-	EXPECT_EQ(ms.get(0).size(), 4);
-	EXPECT_EQ(ms.get(0), m1);
-
-	Move m2(Step(20, true));
-	m2.addStep(Step(34, true));
-	m2.addStep(Step(52, true));
-	m2.addStep(Step(38, true));
-
-	EXPECT_EQ(ms.get(1).size(), 4);
-	EXPECT_EQ(ms.get(1), m2);
-}
-*/
 TEST(testOffsetForPeise, aiTest)
 {
 	CheckersAI ai;
@@ -664,8 +427,8 @@ TEST(testAIDetectBoardBorders, aiTest)
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 15, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 15, true));
 
-	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 59, true));
-	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 59, true));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Right, 59, false));
+	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 59, false));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::RightBack, 59, true));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 59, true));
 
@@ -675,6 +438,9 @@ TEST(testAIDetectBoardBorders, aiTest)
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::Left, 32, false));
 	EXPECT_FALSE(ai.canGoDirection(CheckersAI::RightBack, 32, false));
 	EXPECT_TRUE(ai.canGoDirection(CheckersAI::LeftBack, 32, false));
+
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Right, 2, false));
+	EXPECT_FALSE(ai.canGoDirection(CheckersAI::Left, 2, false));
 
 	EXPECT_FALSE(ai.onKingSide(0, true));
 	EXPECT_TRUE(ai.onKingSide(0, false));
@@ -693,92 +459,3 @@ TEST(testInitBoardColors, boardTest)
 	EXPECT_EQ(b.whoIsThere(41), Black);
 	EXPECT_EQ(b.whoIsThere(63), Black);
 }
-
-/*
-TEST(testFindBaseMovesForPieceWithoutTake, aiTest)
-{
-	Board b;
-	CheckersAI ai;
-	Moves m;
-
-	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 2);
-	EXPECT_EQ(m.size(), 2);
-	EXPECT_EQ(m.get(0), Move(Step(27, false)));
-	EXPECT_EQ(m.get(1), Move(Step(25, false)));
-
-	EXPECT_EQ(ai.findMoves(b, 16, true,  m), 1);
-	//m.toString();
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m.get(0), Move(Step(25, false)));
-
-	EXPECT_EQ(ai.findMoves(b, 9,  true,  m), 0);
-	EXPECT_EQ(m.size(), 0);
-
-	EXPECT_EQ(ai.findMoves(b, 43, false, m), 2);
-	EXPECT_EQ(m.size(), 2);
-	EXPECT_EQ(m.get(0), Move(Step(34, false)));
-	EXPECT_EQ(m.get(1), Move(Step(36, false)));
-
-	EXPECT_EQ(ai.findMoves(b, 47, false, m), 1);
-	EXPECT_EQ(m.size(), 1);
-	EXPECT_EQ(m.get(0), Move(Step(38, false)));
-
-	EXPECT_EQ(ai.findMoves(b, 54, false, m), 0);
-}
-
-TEST(testFindBaseMovesForPieceWithTake, aiTest)
-{
-	int8_t pA[12] = {0, 18, 25, 9, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 27, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	CheckersAI ai;
-	Moves m;
-
-	// шашка заблокирована с одной диагонали и должна рубить 1раз по другой
-	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 1);
-	EXPECT_EQ(m.get(0), Move(Step(36, true)));
-
-	// шашка заблокирована с одной диагонали и не рубит за пределы доски влево
-	EXPECT_EQ(ai.findMoves(b, 9, true,  m), 0);
-}
-
-TEST(testFindMovesPieceCantTakeOutsideBoard, aiTest)
-{
-	int8_t pA[12] = {0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	CheckersAI ai;
-	Moves m;
-
-	// шашка не рубит за пределы доски
-	EXPECT_EQ(ai.findMoves(b, 22, true,  m), 1);
-	EXPECT_EQ(m.get(0), Move(Step(29, false)));
-}
-
-TEST(testFindMovesPieceMustTakeMultiply, aiTest)
-{
-	int8_t pA[12] = {0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t pB[12] = {0, 27, 45, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	int8_t kA[12] = {0};
-	int8_t kB[12] = {0};
-
-	Board b;
-	b.initWithData(pA, pB, kA, kB);
-	CheckersAI ai;
-	Moves m;
-
-	// шашка должна срубить дважды
-	EXPECT_EQ(ai.findMoves(b, 18, true,  m), 1);
-	Move em(Step(36,true));
-	em.addStep(Step(54, true));
-	EXPECT_EQ(m.get(0), em);
-}
-*/
