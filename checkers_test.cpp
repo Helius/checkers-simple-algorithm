@@ -24,6 +24,24 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 // this test will fail after king fix
+
+TEST(testPieceBecameKing, aiTest)
+{
+	int8_t pA[12] = {41, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {50, 45, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Move2 m = ai.findBestMove(b, true);
+	EXPECT_TRUE(m);
+	EXPECT_EQ(m.size(), 2);
+	EXPECT_EQ(m.getStep(0), Step(59, 50));
+	EXPECT_EQ(m.getStep(1), Step(38, 45));
+}
+
 TEST(testFindBestTake, aiTest)
 {
 	int8_t pA[12] = {2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -179,13 +197,11 @@ TEST(testPieceMove, aiTest)
 	EXPECT_EQ(ms.get(0).size(), 1);
 	EXPECT_EQ(ms.get(0).currentInd(), 11);
 	EXPECT_EQ(ms.get(0).getFrom(), 2);
-	EXPECT_EQ(ms.get(0).hasTakes(), false);
 	EXPECT_EQ(ms.get(0).getStep(0), Step(11));
 	
 	EXPECT_EQ(ms.get(1).size(), 1);
 	EXPECT_EQ(ms.get(1).currentInd(), 9);
 	EXPECT_EQ(ms.get(1).getFrom(), 2);
-	EXPECT_EQ(ms.get(1).hasTakes(), false);
 	EXPECT_EQ(ms.get(1).getStep(0), Step(9));
 }
 
@@ -223,7 +239,6 @@ TEST(testPieceOneMove, aiTest)
 	EXPECT_EQ(ms.get(0).size(), 1);
 	EXPECT_EQ(ms.get(0).currentInd(), 9);
 	EXPECT_EQ(ms.get(0).getFrom(), 0);
-	EXPECT_EQ(ms.get(0).hasTakes(), false);
 	EXPECT_EQ(ms.get(0).getStep(0), Step(9));
 }
 

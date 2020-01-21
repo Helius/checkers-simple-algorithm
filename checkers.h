@@ -12,10 +12,9 @@ enum Fld {
 class Step {
 	public:
 		Step() = default;
-		Step(int8_t toInd, int8_t takeInd = -1 /*,bool becameKing = false*/)
+		Step(int8_t toInd, int8_t takeInd = -1)
 		: to(toInd)
 		, take(takeInd)
-		, king(becameKing)
 	{}
 	public:
 		inline bool isValid() const
@@ -58,8 +57,8 @@ class Move2 {
 				return false;
 			}
 			steps_[stepCount_] = step;
-			hasTakes_ |= step.hasTake();
 			stepCount_++;
+			becameKing_ |= step.becameKing;
 			return true;
 		}
 
@@ -93,7 +92,7 @@ class Move2 {
 			}
 		}
 
-		bool hasTakes() const { return hasTakes_; }
+		inline bool becameKing() { return becameKing_; }
 
 		bool alreadyTaken(int8_t ind) const {
 			for(int8_t i = 0; i < stepCount_; ++i) {
@@ -115,7 +114,7 @@ class Move2 {
 	private:
 		int8_t stepCount_ = 0;
 		Step steps_[maxSteps_];
-		bool hasTakes_ = false;
+		bool becameKing_ = false;
 	private:
 		int8_t from = -1;
 };
@@ -208,14 +207,16 @@ public:
 		memcpy(kB, kb, sizeof(kB));
 	}
 
-	void move(int8_t from, int8_t to) {
+	void move(int8_t from, int8_t to, bool becameKing = false) {
 		for(uint8_t i = 0; i < 12; ++i) {
 			if(pA[i] == from) {
 				pA[i] = to;
+				kA[i] |= becameKing;
 				return;
 			}
 			if(pB[i] == from) {
 				pB[i] = to;
+				pA[i] |= becameKing;
 				return;
 			}
 		}
@@ -236,7 +237,7 @@ public:
 
 	Board clone(Move2 m) const{
 		Board b = *this;
-		b.move(m.getFrom(), m.front().to);
+		b.move(m.getFrom(), m.front().to, m.becameKing());
 		for(uint8_t i = 0; i < m.size(); ++i) {
 			Step s = m.getStep(i);
 			if(s.take != -1) {
@@ -561,7 +562,7 @@ private:
 		return Step();
 	}
 
-	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, const bool king, const int8_t from = -1)
+	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, bool king, const int8_t from = -1)
 	{
 		Move2 resultMove;
 
@@ -577,12 +578,16 @@ private:
 				if(step.isValid()) 
 				{
 					Move2 nextMove = m;
+					
+					if(onKingSide(step.to, white) && !king) {
+						king = true;
+						step.becameKing = true;
+					}
 					nextMove.addStep(step);
 					// update if longer
 					if(nextMove.size() > resultMove.size()) {
 						resultMove = nextMove;
 					}
-
 					Move2 move = findLongestTake(b, nextMove, white, king, calcNewFrom(dir));
 					// update if longer
 					if(move.size() > resultMove.size()) {
