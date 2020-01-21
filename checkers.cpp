@@ -1,8 +1,9 @@
-#include "checkers.h"
 
 #include <iostream>
 #include <string>
 #include <assert.h>
+
+#include "checkers.h"
 
 
 void printLine(int ind, const Board & b)
@@ -100,23 +101,38 @@ void printBoard(const Board & b)
 	std::cout << std::endl;
 }
 
+#include <vector>
+#include <sstream>
 
 
 int main()
 {
-	Board b;
-	
-	int8_t pA[12] = {2, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	int8_t kA[12] = {0};
-	int8_t pB[12] = {9, 13, 27, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	int8_t kB[12] = {0};
+	Game game;
+	//b.initWithData(pA, pB, kA, kB);
+	printBoard(game.b);
 
-	CheckersAI ai;
-	
-	b.initWithData(pA, pB, kA, kB);
-	printBoard(b);
-
-	std::cout << "Your turn: ";
+	while(1) { 
+		std::cout << std::endl << "Your turn: ";
+		std::string input;
+		std::string tmp;
+		std::vector<int> nums;
+		nums.clear();
+		while(std::getline(std::cin, tmp)) {
+			std::stringstream ss(tmp);
+			int ti;
+			while(ss >> ti) 
+				nums.push_back(ti);
+			break;
+		}
+		game.b.move(nums[0], nums[1]);
+		for(int i = 2; i < nums.size(); ++i) {
+			game.b.take(nums[i]);
+		}
+		printBoard(game.b);
+		Move2 m = game.getMyMove();
+		game.b = game.b.clone(m);
+		printBoard(game.b);
+	}
 
 	return 0;
 }

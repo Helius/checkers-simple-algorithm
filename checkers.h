@@ -221,6 +221,19 @@ public:
 		}
 	}
 
+	void take(int8_t ind) {
+		for(uint8_t i = 0; i < 12; ++i) {
+			if(pA[i] == ind) {
+				pA[i] = -1;
+				return;
+			}
+			if(pB[i] == ind) {
+				pB[i] = -1;
+				return;
+			}
+		}
+	}
+
 	Board clone(Move2 m) const{
 		Board b = *this;
 		b.move(m.getFrom(), m.front().to);
@@ -237,8 +250,18 @@ public:
 		return ind >=0 && ind < 64;
 	}
 
-	int8_t getPiece(const uint8_t ind, const bool white) const {
+	inline int8_t getPiece(const uint8_t ind, const bool white) const {
 		return white ? pA[ind] : pB[ind];
+	}
+	
+	uint8_t peiceCount(bool white) {
+		uint8_t cnt = 0;
+		for(int i = 0; i < 12; ++i) {
+			if(getPiece(i, white) != -1) {
+				cnt++;
+			}
+		}
+		return cnt;
 	}
 
 	Fld whoIsThere(int8_t ind) const
@@ -350,9 +373,6 @@ public:
 		if(ru > 90)
 		{
 			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
 			return false;
 		}
 #endif
@@ -413,7 +433,6 @@ public:
 					min = bb.value(white);
 				}
 			}
-			std::cout << "min:"<< (int)min << ", max:" << (int)max << std::endl;
 			if(min > max) {
 				max = min;
 				moveInd = i;
@@ -650,12 +669,23 @@ public:
 
 
 	GameState getState() const { return state; }
+	
+	bool doIWin() {
+		return !b.peiceCount(true);
+	}
+
+	bool doTheirWin() {
+		return !b.peiceCount(false);
+	}
+
 
 public:
 	GameState state = WaitForBoardInit;
+	Board b;
+
+private:
 
 private:
 	CheckersAI ai;
-	Board b;
 };
 

@@ -389,6 +389,35 @@ TEST(testNoNewKingTake, aiTest) {
 	EXPECT_EQ(m.size(), 0);
 }
 
+TEST(testWinCondition, gameTest) {
+	int8_t pA[12] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t pB[12] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t pA1[12] = {-1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t pB1[12] = {-1, 5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t kB[12] = {0};
+
+	Game game;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	EXPECT_FALSE(game.doIWin());
+	EXPECT_FALSE(game.doTheirWin());
+	
+	game.b = b;
+	EXPECT_TRUE(game.doIWin());
+	EXPECT_TRUE(game.doTheirWin());
+	
+	b.initWithData(pA1, pB, kA, kB);
+	game.b = b;
+	EXPECT_FALSE(game.doIWin());
+	EXPECT_TRUE(game.doTheirWin());
+	
+	b.initWithData(pA, pB1, kA, kB);
+	game.b = b;
+	EXPECT_TRUE(game.doIWin());
+	EXPECT_FALSE(game.doTheirWin());
+}
+
 TEST(testOffsetForPeise, aiTest)
 {
 	CheckersAI ai;
