@@ -15,7 +15,7 @@ class Step {
 		Step(int8_t toInd, int8_t takeInd = -1 /*,bool becameKing = false*/)
 		: to(toInd)
 		, take(takeInd)
-		//, king(becameKing)
+		, king(becameKing)
 	{}
 	public:
 		inline bool isValid() const
@@ -37,7 +37,7 @@ class Step {
 	public:
 		int8_t to = -1;
 		int8_t take = -1;
-		//bool king = false;
+		bool becameKing = false;
 };
 
 
