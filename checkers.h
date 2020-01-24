@@ -479,7 +479,9 @@ public:
 					uint8_t newOffset = ind + offset(dir, white);
 					if(b.whoIsThere(newOffset) == Empty) {
 						Move2 m(ind);
-						m.addStep(Step(newOffset));
+						Step step(newOffset);
+						step.becameKing |= onKingSide(newOffset, white);
+						m.addStep(step);
 						if(!ms.append(m)) {
 							break;
 						}
@@ -621,7 +623,6 @@ class Game {
 public:
 	enum GameState {
 		WaitForBoardInit,
-		WaitTheirFirstMove,
 		TheirMove,
 		MyMove,
 		IWin,
@@ -631,7 +632,7 @@ public:
 	void startGame() {
 		b = Board();
 		b.print();
-		state = WaitTheirFirstMove;
+		state = TheirMove;
 		/*
 		int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		int8_t pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
@@ -648,6 +649,10 @@ public:
 
 	void moveFinished() {
 		state = MyMove;
+	}
+
+	void getTheirMove(Moves & ms) {
+		ai.findTakesAndMoves(b, ms, true);
 	}
 
 	Move2 getMyMove() 
