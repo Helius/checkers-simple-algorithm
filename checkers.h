@@ -107,6 +107,16 @@ class Move2 {
 			return size() > 0;
 		}
 
+		bool operator==(const Move2 & o) const {
+			if(o.size() != size()) return false;
+			for(uint8_t i = 0; i < size(); ++i) {
+				if(!(o.getStep(i) == getStep(i))) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		int8_t getFrom() const { return from; }
 
 	public:
@@ -119,27 +129,55 @@ class Move2 {
 		int8_t from = -1;
 };
 
-class BoardEvent
+class Moves
 {
 	public:
-		enum Event 
+
+		bool append(Move2 m)
 		{
-			Up,
-			Down,
-			Remove,
-			Multy,
-		};
+			if(count < size_)
+			{
+				moves[count++] = m;
+				return true;
+			}
+			return false;
+		}
 
-		BoardEvent() = default;
+		Move2 get(int i) const { return moves[i]; }
 
-		BoardEvent(uint8_t i, Event e)
-			:ind(i)
-			 , event(e)
-	{}
-		operator bool() const { return ind != 128; }
+		void clear() { count = 0; }
+		int size() const { return count; }
 
-		uint8_t ind = 128;
-		Event event;
+		void updateLonger(Move2 m) {
+			if(!m) return;
+			// sort longest first
+			qsort(moves, count, sizeof(Move2), cmpSize);
+			// find first shorter, replace, change size
+			for(uint8_t i = 0; i < count; ++i) {
+				if(moves[i].size() < m.size()) {
+					moves[i] = m;
+					if(count < size_-1) {
+						count = i+1; // cut all shorter
+					}
+					return;
+				}
+			}
+			if(!count || (m.size() == moves[0].size())) {
+				append(m);
+			}
+		}
+
+	private:
+		static int cmpSize(const void * a, const void * b)
+		{
+			const Move2 * m1 = static_cast<const Move2*>(a);
+			const Move2 * m2 = static_cast<const Move2*>(b);
+			return m2->size() - m1->size();
+		}
+
+		static constexpr int size_ = 8;
+		Move2 moves[size_];
+		int count = 0;
 };
 
 
@@ -295,29 +333,6 @@ public:
 		return false;
 	}
 
-	void processEvent(BoardEvent e)
-	{
-		if(e.event == BoardEvent::Down) {
-			for(int8_t i = 0; i < rowSize_; ++i) {
-				if(pA[i] == -1) {
-					pA[i] = e.ind;
-					return;
-				}
-			}
-		} else if (e.event == BoardEvent::Up) {
-			for(int8_t i = 0; i < rowSize_; ++i) {
-				if(pA[i] == e.ind) {
-					pA[i] = -1;
-					return;
-				}
-				if(pB[i] == e.ind) {
-					pB[i] = -1;
-					return;
-				}
-			}
-		}
-	}
-
 private:
 	static constexpr int8_t rowSize_ = 12;
 
@@ -327,29 +342,38 @@ private:
 	int8_t kB[rowSize_] = {0};
 };
 
-class Moves
+class BoardDiff
 {
 	public:
-
-		bool append(Move2 m)
-		{
-			if(count < size_)
-			{
-				moves[count++] = m;
-				return true;
+		void setDown(int8_t dInd) {
+			down = dInd;
+		}
+		
+		void setUp(int8_t upInd) {
+			if(upCnt < size) {
+				up[(upCnt++)%size] = upInd;
 			}
-			return false;
+		}
+		
+		Move2 match(const Moves & ms) {
+			for(uint8_t j = 0; j < ms.size(); ++j) {
+				Move2 m = ms.get(j);
+				if((m.front().to == down)) {
+					return m;
+				}
+			}
+			return Move2();
 		}
 
-		Move2 get(int i) const { return moves[i]; }
+		operator bool() const {
+			return (down != -2) && (upCnt > 0);
+		}
 
-		void clear() { count = 0; }
-		int size() const { return count; }
-
+		static constexpr uint8_t size = 8;
+		int8_t up[size];
+		int8_t down = -2;
 	private:
-		static constexpr int size_ = 8;
-		Move2 moves[size_];
-		int count = 0;
+		uint8_t upCnt = 0;
 };
 
 
@@ -369,11 +393,12 @@ public:
 	bool canGoDirection(int8_t dir, int8_t ind, bool white)
 	{
 #ifdef __AVR__
-		uint8_t ru = ramUsage();
-		msg << "ram usage:" << ru << m::endl;
-		if(ru > 90)
+
+		uint16_t mf = memfree();
+		msg << "memfree: " << mf << m::endl;
+		if(mf < 64)
 		{
-			msg << "!!!!!!!!!!!! ram too low !!!!!!!!!!!!!!!!!" << m::endl;
+			msg << "\t\t! ram too low \t\t" << m::endl;
 			return false;
 		}
 #endif
@@ -412,9 +437,6 @@ public:
 	}
 
 	Move2 findBestMove(const Board & b, bool white) {
-#ifdef __AVR__
-		msg << "Searching best move..." << m::endl;
-#endif
 		Moves ms;
 		findTakesAndMoves(b, ms, white);
 		int8_t max = -100;
@@ -423,13 +445,13 @@ public:
 		for(int8_t i = 0; i < ms.size(); ++i) {
 			
 			Board newB = b.clone(ms.get(i));
-			newB.print();
+			//newB.print();
 			Moves newMs;
 			findTakesAndMoves(newB, newMs, !white);
 			int8_t min = 100;
 			for(int8_t j = 0; j < newMs.size(); ++j) {
 				Board bb = newB.clone(newMs.get(j));
-				bb.print();
+				//bb.print();
 				if(bb.value(white) < min) {
 					min = bb.value(white);
 				}
@@ -438,15 +460,8 @@ public:
 				max = min;
 				moveInd = i;
 			}
-
-#ifdef __AVR__
-			msg << "done with moves:" << ms.size() << m::endl;
-#endif
 		}
 		return ms.get(moveInd);
-#ifdef __AVR__
-		msg << "done with moves:" << ms.size() << m::endl;
-#endif
 	}
 
 	Move2 findLongestTake(const Board & b, const bool white, const int8_t startInd = -1)
@@ -455,6 +470,14 @@ public:
 		Move2 m(startInd);
 
 		return findLongestTake(b, m, white, b.isItKing(startInd));
+	}
+	
+	void findAllTakes(const Board & b, Moves & ms, const bool white, const int8_t startInd = -1)
+	{
+		// so we have start index and 4 direction to search
+		Move2 m(startInd);
+
+		findAllTakes(b, m, ms, white, b.isItKing(startInd));
 	}
 
 	void findMoves(const Board & b, Moves & ms, bool white, uint8_t ind)
@@ -490,6 +513,26 @@ public:
 			}
 		}
 	}
+	void findTheirAllTakesAndMoves(const Board & b, Moves & ms, bool white) 
+	{
+		// first find all takes for all pieces
+		for(int i = 0; i < 12; ++i) {
+			int8_t ind = b.getPiece(i, white);
+			if(!b.isValid(ind)) {
+				continue;
+			}
+			findAllTakes(b, ms, white, ind);
+		}
+		if(!ms.size()) {
+			for(int i = 0; i < 12; ++i) {
+				int8_t ind = b.getPiece(i, white);
+				if(!b.isValid(ind)) {
+					continue;
+				}
+				findMoves(b, ms, white, ind);
+			}
+		}
+	}
 
 	void findTakesAndMoves(const Board & b, Moves & ms, bool white) 
 	{
@@ -500,9 +543,7 @@ public:
 				continue;
 			}
 			if(Move2 m = findLongestTake(b, white, ind)) {
-				if(!ms.append(m)) {
-					return;
-				}
+				ms.append(m);
 			}
 		}
 		if(!ms.size()) {
@@ -562,6 +603,49 @@ private:
 			}
 		}
 		return Step();
+	}
+	
+	void findAllTakes(const Board & b, const Move2 m, Moves & ms, const bool white, bool king, const int8_t from = -1)
+	{
+		int8_t ind = m.currentInd();
+
+		// check all directions
+		for(int8_t dir = 0; dir < 4; ++dir)
+		{
+			if(dir != from)
+			{
+				Step step = eatEnemy(b, dir, ind, white, king, m);
+				
+				if(step.isValid()) 
+				{
+					Move2 nextMove = m;
+					
+					if(onKingSide(step.to, white) && !king) {
+						king = true;
+						step.becameKing = true;
+					}
+					nextMove.addStep(step);
+					// update if longer
+					ms.updateLonger(nextMove);
+					
+					Move2 move = findLongestTake(b, nextMove, white, king, calcNewFrom(dir));
+					// update if longer
+					ms.updateLonger(move);
+					// check other empty spaces after enemy we can land
+					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
+						Move2 additionalMove = m;
+						step.to = step.to + offset(dir, white);
+						additionalMove.addStep(step);
+						/*
+						if(additionalMove.size() > resultMove.size()) {
+							resultMove = additionalMove;
+						}*/
+						Move2 additionalResult = findLongestTake(b, additionalMove, white, king, calcNewFrom(dir));
+						ms.updateLonger(additionalResult);
+					}
+				}
+			}
+		}
 	}
 
 	Move2 findLongestTake(const Board & b, const Move2 m, const bool white, bool king, const int8_t from = -1)
@@ -633,18 +717,6 @@ public:
 		b = Board();
 		b.print();
 		state = TheirMove;
-		/*
-		int8_t pA[12] = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		int8_t pB[12] = {11, 27, 25, 9, 0, 0, 0, 0, 0, 0, 0};
-		int8_t kA[12] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		int8_t kB[12] = {0};
-		b.initWithData(pA, pB, kA, kB);
-		*/
-	}
-
-	void applyBoardEvent(BoardEvent e)
-	{
-		b.processEvent(e);
 	}
 
 	void moveFinished() {
@@ -652,7 +724,13 @@ public:
 	}
 
 	void getTheirMove(Moves & ms) {
-		ai.findTakesAndMoves(b, ms, true);
+		ai.findTheirAllTakesAndMoves(b, ms, true);
+		//ai.findTakesAndMoves(b, ms, true);
+	}
+
+	void applyTheirMove(Move2 m) {
+		b = b.clone(m);
+		state = MyMove;
 	}
 
 	Move2 getMyMove() 
@@ -666,9 +744,10 @@ public:
 		reset();
 	}
 
-	void myMoveApplyed()
+	void myMoveApplyed(Move2 m)
 	{
 		// check we win or lost
+		b = b.clone(m);
 		state = TheirMove;
 	}
 

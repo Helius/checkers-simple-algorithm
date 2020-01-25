@@ -23,7 +23,81 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
   ┣━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━╋━━━┫
 	1   2   3   4   5   6   7   8
 */
-// this test will fail after king fix
+
+TEST(testFindOneLongestTakes, aiTest)
+{
+	int8_t pA[12] = {27, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {18, 20, 36, 34, 54, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findAllTakes(b, ms, true, 27);
+	EXPECT_EQ(ms.size(), 1);
+}
+
+TEST(testFindAllTakes, aiTest)
+{
+	int8_t pA[12] = {27, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0};
+	int8_t pB[12] = {18, 20, 36, 34, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findAllTakes(b, ms, true, 27);
+	EXPECT_EQ(ms.size(), 4);
+}
+
+TEST(testLongestOverrideShortest, movesTest)
+{
+	Moves ms;
+	
+	Move2 m1;
+	m1.addStep(Step(1,1));
+	EXPECT_EQ(m1.size(), 1);
+	m1.addStep(Step(1,1));
+	EXPECT_EQ(m1.size(), 2);
+	
+	Move2 m2;
+	m2.addStep(Step(1,1));
+	m2.addStep(Step(1,1));
+	m2.addStep(Step(1,1));
+	EXPECT_EQ(m2.size(), 3);
+
+	ms.append(m1);
+	EXPECT_EQ(ms.size(), 1);
+	ms.append(m2);
+	EXPECT_EQ(ms.size(), 2);
+	
+	Move2 m3;
+	m3.addStep(Step(1,1));
+	m3.addStep(Step(1,1));
+	m3.addStep(Step(1,1));
+	m3.addStep(Step(1,1));
+
+	ms.updateLonger(m3);
+	EXPECT_EQ(ms.size(), 1);
+	EXPECT_EQ(ms.get(0).size(), 4);
+	
+	ms.updateLonger(m3);
+	EXPECT_EQ(ms.size(), 2);
+	EXPECT_EQ(ms.get(0).size(), 4);
+	EXPECT_EQ(ms.get(1).size(), 4);
+
+	Move2 m4;
+	m4.addStep(Step(1,1));
+	ms.updateLonger(m4);
+	
+	EXPECT_EQ(ms.size(), 2);
+	EXPECT_EQ(ms.get(0).size(), 4);
+	EXPECT_EQ(ms.get(1).size(), 4);
+}
 
 TEST(testPieceBecameKing, aiTest)
 {
@@ -116,7 +190,7 @@ TEST(testFindAllMove, aiTest)
 	*/
 }
 
-TEST(testFindAllTakes, aiTest)
+TEST(testFindTakes, aiTest)
 {
 	int8_t pA[12] = {0, 2, 29, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 	int8_t kA[12] = {0};
