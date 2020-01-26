@@ -103,6 +103,15 @@ class Move2 {
 			return false;
 		} 
 
+		bool hasTakes() {
+			for(int8_t i = 0; i < stepCount_; ++i) {
+				if(steps_[i].take != -1) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		operator bool() const {
 			return size() > 0;
 		}
@@ -143,6 +152,15 @@ class Moves
 			return false;
 		}
 
+		bool hasTakes() {
+			for(uint8_t i = 0; i < size(); ++i) {
+				if(moves[i].hasTakes()) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		Move2 get(int i) const { return moves[i]; }
 
 		void clear() { count = 0; }
@@ -175,7 +193,7 @@ class Moves
 			return m2->size() - m1->size();
 		}
 
-		static constexpr int size_ = 8;
+		static constexpr int size_ = 6;
 		Move2 moves[size_];
 		int count = 0;
 };
@@ -393,9 +411,16 @@ public:
 	bool canGoDirection(int8_t dir, int8_t ind, bool white)
 	{
 #ifdef __AVR__
-
+		static uint16_t savedValue = 500;
 		uint16_t mf = memfree();
-		msg << "memfree: " << mf << m::endl;
+		if(mf != savedValue) {
+			msg << "memfree: " << mf;
+			for(uint8_t i = 0; i < mf/50; ++i) {
+				msg << "#";
+			}
+			msg << m::endl;
+			savedValue = mf;
+		}
 		if(mf < 64)
 		{
 			msg << "\t\t! ram too low \t\t" << m::endl;
@@ -513,7 +538,7 @@ public:
 			}
 		}
 	}
-	void findTheirAllTakesAndMoves(const Board & b, Moves & ms, bool white) 
+	void findTheirAllTakes(const Board & b, Moves & ms, bool white) 
 	{
 		// first find all takes for all pieces
 		for(int i = 0; i < 12; ++i) {
@@ -523,6 +548,7 @@ public:
 			}
 			findAllTakes(b, ms, white, ind);
 		}
+		
 		if(!ms.size()) {
 			for(int i = 0; i < 12; ++i) {
 				int8_t ind = b.getPiece(i, white);
@@ -628,9 +654,9 @@ private:
 					// update if longer
 					ms.updateLonger(nextMove);
 					
-					Move2 move = findLongestTake(b, nextMove, white, king, calcNewFrom(dir));
+					findAllTakes(b, nextMove, ms, white, king, calcNewFrom(dir));
 					// update if longer
-					ms.updateLonger(move);
+					//ms.updateLonger(move);
 					// check other empty spaces after enemy we can land
 					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
 						Move2 additionalMove = m;
@@ -640,8 +666,8 @@ private:
 						if(additionalMove.size() > resultMove.size()) {
 							resultMove = additionalMove;
 						}*/
-						Move2 additionalResult = findLongestTake(b, additionalMove, white, king, calcNewFrom(dir));
-						ms.updateLonger(additionalResult);
+						findAllTakes(b, additionalMove, ms, white, king, calcNewFrom(dir));
+						//ms.updateLonger(additionalResult);
 					}
 				}
 			}
@@ -709,8 +735,6 @@ public:
 		WaitForBoardInit,
 		TheirMove,
 		MyMove,
-		IWin,
-		TheyWin,
 	};
 
 	void startGame() {
@@ -724,8 +748,7 @@ public:
 	}
 
 	void getTheirMove(Moves & ms) {
-		ai.findTheirAllTakesAndMoves(b, ms, true);
-		//ai.findTakesAndMoves(b, ms, true);
+		ai.findTheirAllTakes(b, ms, true);
 	}
 
 	void applyTheirMove(Move2 m) {
