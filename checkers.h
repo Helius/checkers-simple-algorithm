@@ -31,7 +31,7 @@ class Step {
 		{
 			return (to == s.to) && (take == s.take);
 		}
-		inline bool hasTake() {return  take != -1;}
+		inline bool hasTake() const {return  take != -1;}
 
 	public:
 		int8_t to = -1;
@@ -58,7 +58,6 @@ class Move2 {
 			}
 			steps_[stepCount_] = step;
 			stepCount_++;
-			becameKing_ |= step.becameKing;
 			return true;
 		}
 
@@ -92,7 +91,14 @@ class Move2 {
 			}
 		}
 
-		inline bool becameKing() { return becameKing_; }
+		inline bool becameKing() {
+			for(int8_t i = 0; i < stepCount_; ++i) {
+				if(steps_[i].becameKing) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 		bool alreadyTaken(int8_t ind) const {
 			for(int8_t i = 0; i < stepCount_; ++i) {
@@ -133,7 +139,6 @@ class Move2 {
 	private:
 		int8_t stepCount_ = 0;
 		Step steps_[maxSteps_];
-		bool becameKing_ = false;
 	private:
 		int8_t from = -1;
 };
@@ -193,7 +198,7 @@ class Moves
 			return m2->size() - m1->size();
 		}
 
-		static constexpr int size_ = 6;
+		static constexpr int size_ = 7;
 		Move2 moves[size_];
 		int count = 0;
 };
@@ -213,7 +218,24 @@ public:
 #ifdef __AVR__
 		msg << (line%2 ? " " : "");
 		for(uint8_t i = 0; i < 4; ++i) {
-			msg << whoIsThere(line*8 + i*2 + (line%2 ? 1 : 0));
+			int8_t ind = line*8 + i*2 + (line%2 ? 1 : 0);
+			int8_t who = whoIsThere(ind);
+			if(isItKing(ind)) {
+				switch(who) {
+					case White:
+						msg << "I ";
+						break;
+					case Black:
+						msg << "Z ";
+						break;
+					case Empty:
+						msg << "0 ";
+						break;
+				}
+			} else {
+				msg << who;
+			}
+
 		}
 #else
 		std::cout << (const char*)(line%2 ? " " : "");
@@ -377,7 +399,15 @@ class BoardDiff
 			for(uint8_t j = 0; j < ms.size(); ++j) {
 				Move2 m = ms.get(j);
 				if((m.front().to == down)) {
-					return m;
+					int takeCnt = 0;
+					for(int i = 0; i < m.size(); i++) {
+						if(m.getStep(i).take != -1) {
+							takeCnt++;
+						}
+					}
+					if(upCnt - 1 == takeCnt) {
+						return m;
+					}
 				}
 			}
 			return Move2();
@@ -414,16 +444,16 @@ public:
 		static uint16_t savedValue = 500;
 		uint16_t mf = memfree();
 		if(mf != savedValue) {
-			msg << "memfree: " << mf;
+			msg << "m:" << mf;
 			for(uint8_t i = 0; i < mf/50; ++i) {
 				msg << "#";
 			}
 			msg << m::endl;
 			savedValue = mf;
 		}
-		if(mf < 64)
+		if(mf < 128)
 		{
-			msg << "\t\t! ram too low \t\t" << m::endl;
+			msg << "lowr" << m::endl;
 			return false;
 		}
 #endif
@@ -658,10 +688,11 @@ private:
 					// update if longer
 					//ms.updateLonger(move);
 					// check other empty spaces after enemy we can land
-					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
+					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white)) == Empty)) {
 						Move2 additionalMove = m;
 						step.to = step.to + offset(dir, white);
 						additionalMove.addStep(step);
+						ms.updateLonger(additionalMove);
 						/*
 						if(additionalMove.size() > resultMove.size()) {
 							resultMove = additionalMove;
@@ -706,7 +737,7 @@ private:
 						resultMove = move;
 					}
 					// check other empty spaces after enemy we can land
-					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white) == Empty))) {
+					while(king && canGoDirection(dir, step.to, white) && (b.whoIsThere(step.to + offset(dir, white)) == Empty)) {
 						Move2 additionalMove = m;
 						step.to = step.to + offset(dir, white);
 						additionalMove.addStep(step);

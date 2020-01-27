@@ -24,6 +24,22 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+TEST(testFindAllKingTakes, aiTest)
+{
+	int8_t pA[12] = {32, 18, 27, 6, 31, 61, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0,  0,   0, 0,  0,  1,  0,  0,  0,  0,  0,  0};
+	int8_t pB[12] = {48, 41, 43, 15, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	ai.findAllTakes(b, ms, true, 61);
+	std::cout << (int)ms.get(0).getStep(0).to << (int)ms.get(0).getStep(0).take << (int)ms.get(0).getStep(0).hasTake() << std::endl;
+	EXPECT_EQ(ms.size(), 3);
+}
+
 TEST(testFindOneLongestTakes, aiTest)
 {
 	int8_t pA[12] = {27, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
