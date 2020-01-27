@@ -272,7 +272,7 @@ public:
 			}
 			if(pB[i] == from) {
 				pB[i] = to;
-				pA[i] |= becameKing;
+				kB[i] |= becameKing;
 				return;
 			}
 		}
@@ -754,6 +754,7 @@ public:
 	void applyTheirMove(Move2 m) {
 		b = b.clone(m);
 		state = MyMove;
+		b.print();
 	}
 
 	Move2 getMyMove() 
@@ -772,6 +773,7 @@ public:
 		// check we win or lost
 		b = b.clone(m);
 		state = TheirMove;
+		b.print();
 	}
 
 	void reset()
