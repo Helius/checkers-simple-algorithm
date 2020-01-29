@@ -24,6 +24,38 @@ a ┃ O ┃   ┃ 2 ┃   ┃ 4 ┃   ┃ 6 ┃   ┃
 	1   2   3   4   5   6   7   8
 */
 
+
+TEST(testFindTwoPieceTakes, aiTest)
+{
+	int8_t pA[12] = {16, 18, 27, 20, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kA[12] = {0,  0,   0, 0,  0,  0,  0,  0,  0,  0,  0,  0};
+	int8_t pB[12] = {25, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	int8_t kB[12] = {0};
+
+	CheckersAI ai;
+	Board b;
+	b.initWithData(pA, pB, kA, kB);
+	Moves ms;
+	for(int i = 0; i < 12; ++i) {
+		ai.findAllTakes(b, ms, true, b.getPiece(i, true));
+	}
+	EXPECT_EQ(ms.size(), 2);
+
+	BoardDiff bd;
+	bd.setDown(34);
+	bd.setUp(16);
+	bd.setUp(25);
+	Move2 m = bd.match(ms);
+	EXPECT_TRUE(m);
+	
+	BoardDiff bd1;
+	bd1.setDown(32);
+	bd1.setUp(18);
+	bd1.setUp(25);
+	Move2 m1 = bd1.match(ms);
+	EXPECT_TRUE(m1);
+}
+
 TEST(testFindAllKingTakes, aiTest)
 {
 	int8_t pA[12] = {32, 18, 27, 6, 31, 61, -1, -1, -1, -1, -1, -1};
@@ -36,7 +68,6 @@ TEST(testFindAllKingTakes, aiTest)
 	b.initWithData(pA, pB, kA, kB);
 	Moves ms;
 	ai.findAllTakes(b, ms, true, 61);
-	std::cout << (int)ms.get(0).getStep(0).to << (int)ms.get(0).getStep(0).take << (int)ms.get(0).getStep(0).hasTake() << std::endl;
 	EXPECT_EQ(ms.size(), 3);
 }
 
